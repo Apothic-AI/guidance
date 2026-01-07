@@ -38,6 +38,7 @@ install_requires = [
 extras_requires = {
     "azureai": ["openai>=1.0", "azure-ai-inference"],
     "openai": ["openai>=1.0"],
+    "openrouter": ["openrouter>=0.1.1"],
 }
 
 # Create the union of all our requirements
