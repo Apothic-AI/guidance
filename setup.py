@@ -31,7 +31,8 @@ install_requires = [
     "requests",
     "psutil",
     "guidance-stitch==0.1.5",
-    "llguidance==1.5.0",
+    # Supports Pyodide builds where llguidance is provided from a local wheel/URL.
+    os.getenv("GUIDANCE_LLGUIDANCE_SPEC", "llguidance==1.5.0").strip() or "llguidance==1.5.0",
 ]
 
 # Our basic list of 'extras'
