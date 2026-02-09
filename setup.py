@@ -21,7 +21,7 @@ from setuptools import find_packages, setup
 here = os.path.abspath(os.path.dirname(__file__))
 
 llamacpp_requires = ["llama-cpp-python==0.3.16"]
-transformers_requires = ["transformers==4.53.3"]
+transformers_requires = ["transformers<5"]
 onnxruntime_genai_requires = ["onnxruntime-gpu>=1.19.2", "onnxruntime-genai-cuda>=0.4.0"]
 
 install_requires = [
@@ -31,7 +31,7 @@ install_requires = [
     "requests",
     "psutil",
     "guidance-stitch==0.1.5",
-    "llguidance==1.4.0",
+    "llguidance==1.5.0",
 ]
 
 # Our basic list of 'extras'
@@ -55,8 +55,7 @@ doc_requires = [
     "sphinx",
     "ipykernel",
     "huggingface_hub",
-    "llama-cpp-python",
-]
+] + llamacpp_requires
 unittest_requires = [
     "anytree",
     "jsonschema",
@@ -79,10 +78,10 @@ test_requires = [
     "protobuf",
     "sentencepiece",
     "torch",
-    "transformers",
     "tiktoken>=0.3",
     "mypy==1.9.0",
-] + unittest_requires
+]
+test_requires = test_requires + unittest_requires + transformers_requires
 
 dev_requires = ["ruff==0.13.0", "mypy"]
 
