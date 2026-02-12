@@ -1,6 +1,10 @@
 import base64
 import json
+import threading
 import time
+from urllib import error as urllib_error
+from urllib import parse as urllib_parse
+from urllib import request as urllib_request
 import wave
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -33,6 +37,11 @@ from ._base import Interpreter, State
 if TYPE_CHECKING:
     import openai
     from openai.types.chat import ChatCompletionChunk
+
+_OPENROUTER_ENDPOINTS_TTL_SECONDS = 300.0
+_OPENROUTER_ENDPOINTS_FAILURE_TTL_SECONDS = 60.0
+_OPENROUTER_ENDPOINTS_CACHE: dict[tuple[str, str], tuple[float, list[dict[str, Any]]]] = {}
+_OPENROUTER_ENDPOINTS_CACHE_LOCK = threading.Lock()
 
 
 def get_role_start(role: str) -> str:
@@ -237,14 +246,24 @@ class OpenAIClientWrapper(BaseOpenAIClientWrapper):
         **kwargs,
     ) -> ContextManager[Iterator["ChatCompletionChunk"]]:
         """Streaming chat completions."""
+        request_kwargs = {key: value for key, value in kwargs.items() if value is not None}
+        top_logprobs = request_kwargs.get("top_logprobs")
+        if top_logprobs is None:
+            request_kwargs.pop("top_logprobs", None)
+        if logprobs:
+            request_kwargs["logprobs"] = True
+            if top_logprobs is not None:
+                request_kwargs["top_logprobs"] = top_logprobs
+        else:
+            request_kwargs.pop("logprobs", None)
+            request_kwargs.pop("top_logprobs", None)
 
         return self.client.chat.completions.create(
             model=model,
             messages=messages,
-            logprobs=logprobs,
             stream=True,
             stream_options={"include_usage": True},
-            **kwargs,
+            **request_kwargs,
         )
 
 
@@ -260,10 +279,205 @@ class BaseOpenAIInterpreter(Interpreter[OpenAIState]):
         self.model = model
         self.client = client
         self.reasoning_effort = reasoning_effort
+        self.openrouter_require_parameters: bool | None = None
+        self.openrouter_allow_fallbacks: bool | None = None
+        self.openrouter_provider: str | None = None
 
         if "gpt-5" in model:
             # logprobs are not allowed for gpt-5...
             self.logprobs = False
+
+    def _client_base_url(self) -> str:
+        wrapped = getattr(self.client, "client", None)
+        raw = getattr(wrapped, "base_url", "")
+        return str(raw).strip().lower()
+
+    def _is_openrouter_client(self) -> bool:
+        return "openrouter.ai" in self._client_base_url()
+
+    def _openrouter_client_api_key(self) -> str:
+        wrapped = getattr(self.client, "client", None)
+        raw_key = getattr(wrapped, "api_key", "")
+        if hasattr(raw_key, "get_secret_value"):
+            try:
+                raw_key = raw_key.get_secret_value()
+            except Exception:  # noqa: BLE001
+                raw_key = ""
+        key = str(raw_key).strip()
+        if not key or key.startswith("*"):
+            return ""
+        return key
+
+    def _openrouter_api_base(self) -> str:
+        base = self._client_base_url()
+        marker = "/api/v1"
+        idx = base.find(marker)
+        if idx >= 0:
+            return base[: idx + len(marker)]
+        return base.rstrip("/")
+
+    def _openrouter_model_endpoints_url(self, model: str) -> str:
+        model_text = str(model).strip().strip("/")
+        if not model_text:
+            return ""
+        base = self._openrouter_api_base()
+        if "/" in model_text:
+            author, slug = model_text.split("/", 1)
+            author_token = urllib_parse.quote(author, safe="")
+            slug_token = urllib_parse.quote(slug, safe="")
+            return f"{base}/models/{author_token}/{slug_token}/endpoints"
+        model_token = urllib_parse.quote(model_text, safe="")
+        return f"{base}/models/{model_token}/endpoints"
+
+    def _openrouter_fetch_model_endpoints(self, model: str) -> list[dict[str, Any]]:
+        url = self._openrouter_model_endpoints_url(model)
+        if not url:
+            return []
+        cache_key = (self._openrouter_api_base(), str(model).strip())
+        now = time.time()
+        with _OPENROUTER_ENDPOINTS_CACHE_LOCK:
+            cached = _OPENROUTER_ENDPOINTS_CACHE.get(cache_key)
+            if cached and cached[0] > now:
+                return list(cached[1])
+
+        headers = {"Accept": "application/json"}
+        api_key = self._openrouter_client_api_key()
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        request = urllib_request.Request(url, headers=headers)
+
+        ttl = _OPENROUTER_ENDPOINTS_FAILURE_TTL_SECONDS
+        endpoints: list[dict[str, Any]] = []
+        try:
+            with urllib_request.urlopen(request, timeout=6) as response:  # noqa: S310
+                payload = json.loads(response.read().decode("utf-8"))
+            data = payload.get("data") if isinstance(payload, dict) else None
+            raw_endpoints = data.get("endpoints") if isinstance(data, dict) else None
+            if isinstance(raw_endpoints, list):
+                endpoints = [row for row in raw_endpoints if isinstance(row, dict)]
+            ttl = _OPENROUTER_ENDPOINTS_TTL_SECONDS
+        except (urllib_error.URLError, urllib_error.HTTPError, TimeoutError, json.JSONDecodeError):
+            endpoints = []
+
+        with _OPENROUTER_ENDPOINTS_CACHE_LOCK:
+            _OPENROUTER_ENDPOINTS_CACHE[cache_key] = (now + ttl, list(endpoints))
+        return endpoints
+
+    def _openrouter_provider_settings(self, request_kwargs: dict[str, Any]) -> tuple[list[str], bool]:
+        extra = request_kwargs.get("extra_body")
+        if not isinstance(extra, dict):
+            return [], False
+        provider = extra.get("provider")
+        if not isinstance(provider, dict):
+            return [], False
+        order_raw = provider.get("order")
+        order: list[str] = []
+        if isinstance(order_raw, list):
+            for item in order_raw:
+                text = str(item).strip().lower()
+                if text:
+                    order.append(text)
+        require_parameters = bool(provider.get("require_parameters", False))
+        return order, require_parameters
+
+    def _openrouter_candidate_endpoints(
+        self,
+        *,
+        endpoints: list[dict[str, Any]],
+        provider_order: list[str],
+    ) -> list[dict[str, Any]]:
+        if not provider_order:
+            return list(endpoints)
+        filtered: list[dict[str, Any]] = []
+        for endpoint in endpoints:
+            provider_name = str(endpoint.get("provider_name", "")).strip().lower()
+            tag = str(endpoint.get("tag", "")).strip().lower()
+            name = str(endpoint.get("name", "")).strip().lower()
+            haystack = " ".join((provider_name, tag, name))
+            if any(token == provider_name or token == tag or token in haystack for token in provider_order):
+                filtered.append(endpoint)
+        return filtered if filtered else list(endpoints)
+
+    def _openrouter_parameter_supported(
+        self,
+        *,
+        endpoints: list[dict[str, Any]],
+        parameter: str,
+        require_parameters: bool,
+    ) -> bool:
+        if not endpoints:
+            return False
+        supported_count = 0
+        for endpoint in endpoints:
+            supported = endpoint.get("supported_parameters")
+            if not isinstance(supported, list):
+                continue
+            if parameter in {str(item).strip() for item in supported}:
+                supported_count += 1
+        if supported_count <= 0:
+            return False
+        if require_parameters:
+            return True
+        return supported_count == len(endpoints)
+
+    def _openrouter_logprobs_capability(self, request_kwargs: dict[str, Any]) -> tuple[bool, bool]:
+        endpoints = self._openrouter_fetch_model_endpoints(self.model)
+        provider_order, require_parameters = self._openrouter_provider_settings(request_kwargs)
+        candidates = self._openrouter_candidate_endpoints(
+            endpoints=endpoints,
+            provider_order=provider_order,
+        )
+        supports_logprobs = self._openrouter_parameter_supported(
+            endpoints=candidates,
+            parameter="logprobs",
+            require_parameters=require_parameters,
+        )
+        supports_top_logprobs = self._openrouter_parameter_supported(
+            endpoints=candidates,
+            parameter="top_logprobs",
+            require_parameters=require_parameters,
+        )
+        return supports_logprobs, supports_top_logprobs
+
+    def _openrouter_effective_reasoning_effort(self, request_kwargs: dict[str, Any]) -> str | None:
+        explicit = request_kwargs.pop("reasoning_effort", None)
+        if isinstance(explicit, str) and explicit.strip():
+            return explicit.strip()
+        if isinstance(self.reasoning_effort, str) and self.reasoning_effort.strip():
+            return self.reasoning_effort.strip()
+        return None
+
+    def _apply_openrouter_request_overrides(self, request_kwargs: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(request_kwargs)
+
+        if "max_completion_tokens" in normalized and "max_tokens" not in normalized:
+            normalized["max_tokens"] = normalized.get("max_completion_tokens")
+        normalized.pop("max_completion_tokens", None)
+
+        raw_extra = normalized.get("extra_body")
+        extra_body = dict(raw_extra) if isinstance(raw_extra, dict) else {}
+
+        reasoning_effort = self._openrouter_effective_reasoning_effort(normalized)
+        if reasoning_effort:
+            reasoning = extra_body.get("reasoning")
+            reasoning_obj = dict(reasoning) if isinstance(reasoning, dict) else {}
+            reasoning_obj.setdefault("effort", reasoning_effort)
+            extra_body["reasoning"] = reasoning_obj
+
+        provider = extra_body.get("provider")
+        provider_obj = dict(provider) if isinstance(provider, dict) else {}
+        if self.openrouter_require_parameters is not None:
+            provider_obj.setdefault("require_parameters", bool(self.openrouter_require_parameters))
+        if self.openrouter_allow_fallbacks is not None:
+            provider_obj.setdefault("allow_fallbacks", bool(self.openrouter_allow_fallbacks))
+        if isinstance(self.openrouter_provider, str) and self.openrouter_provider.strip():
+            provider_obj.setdefault("order", [self.openrouter_provider.strip()])
+        if provider_obj:
+            extra_body["provider"] = provider_obj
+
+        if extra_body:
+            normalized["extra_body"] = extra_body
+        return normalized
 
     def run(self, node: ASTNode, **kwargs) -> Iterator[OutputAttr]:
         if not isinstance(node, RoleStart) and self.state.active_role is None:
@@ -319,17 +533,29 @@ class BaseOpenAIInterpreter(Interpreter[OpenAIState]):
             if sampling_params.get("repetition_penalty", None) is not None:
                 raise ValueError("OpenAI models do not support repetition_penalty sampling.")
 
-        # Set default kwargs
-        if "reasoning_effort" not in kwargs and self.reasoning_effort is not None:
-            kwargs["reasoning_effort"] = self.reasoning_effort
+        request_kwargs = dict(kwargs)
+        if self._is_openrouter_client():
+            request_kwargs = self._apply_openrouter_request_overrides(request_kwargs)
+        elif "reasoning_effort" not in request_kwargs and self.reasoning_effort is not None:
+            request_kwargs["reasoning_effort"] = self.reasoning_effort
+
+        request_logprobs = self.logprobs
+        top_logprobs = self.top_k if request_logprobs else None
+        if self._is_openrouter_client():
+            supports_logprobs, supports_top_logprobs = self._openrouter_logprobs_capability(request_kwargs)
+            if not supports_logprobs:
+                request_logprobs = False
+                top_logprobs = None
+            elif not supports_top_logprobs:
+                top_logprobs = None
 
         with self.client.streaming_chat_completions(
             model=self.model,
             messages=cast(list[dict[str, Any]], TypeAdapter(list[Message]).dump_python(self.state.messages)),
-            logprobs=self.logprobs,
-            top_logprobs=self.top_k if self.logprobs else None,
+            logprobs=request_logprobs,
+            top_logprobs=top_logprobs,
             tools=[tool.with_name(name).to_openai_style() for name, tool in tools.items()] if tools else None,
-            **kwargs,
+            **request_kwargs,
         ) as chunks:
             yield from self._handle_stream(chunks, tools)
 
