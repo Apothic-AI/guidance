@@ -1,7 +1,7 @@
 import json
 import threading
 import time
-from typing import Any
+from typing import Any, Literal
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
 from urllib import request as urllib_request
@@ -15,6 +15,7 @@ _OPENROUTER_MODELS_FAILURE_TTL_SECONDS = 60.0
 _OPENROUTER_MODELS_CACHE: dict[tuple[str, str], tuple[float, dict[str, dict[str, Any]]]] = {}
 _OPENROUTER_MODELS_CACHE_LOCK = threading.Lock()
 _DEFAULT_OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
+_OPENROUTER_TOP_LOGPROBS_SAFE_MAX = 20
 
 
 def _normalized_openrouter_api_base(raw_base: str | None) -> str:
@@ -337,6 +338,36 @@ class OpenRouterCapabilityMixin:
             parameter="top_logprobs",
         )
         return supports_logprobs, supports_top_logprobs
+
+    def _openrouter_normalized_top_logprobs(self, value: Any) -> int | None:
+        if value is None:
+            return None
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return None
+        if parsed <= 0:
+            return None
+        return min(parsed, _OPENROUTER_TOP_LOGPROBS_SAFE_MAX)
+
+    def _openrouter_effective_logprobs_mode(
+        self,
+        *,
+        request_kwargs: dict[str, Any],
+        enable_logprobs: bool,
+        top_logprobs: Any,
+    ) -> tuple[Literal["disabled", "logprobs_only", "logprobs_and_top_logprobs"], int | None]:
+        if not enable_logprobs:
+            return "disabled", None
+
+        supports_logprobs, supports_top_logprobs = self._openrouter_logprobs_capability(request_kwargs)
+        if not supports_logprobs:
+            return "disabled", None
+
+        normalized_top_logprobs = self._openrouter_normalized_top_logprobs(top_logprobs)
+        if normalized_top_logprobs is None or not supports_top_logprobs:
+            return "logprobs_only", None
+        return "logprobs_and_top_logprobs", normalized_top_logprobs
 
     def _openrouter_supports_tools(self, request_kwargs: dict[str, Any]) -> bool:
         return self._openrouter_parameter_supported_for_request(

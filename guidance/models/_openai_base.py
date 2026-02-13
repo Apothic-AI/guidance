@@ -30,6 +30,12 @@ from .._utils import bytes_from
 from ..trace import AudioOutput, ImageOutput, OutputAttr, TextOutput, Token, TokenOutput
 from ._base import Interpreter, State
 from ._openrouter_capabilities import OpenRouterCapabilityMixin
+from ._streaming_utils import (
+    CaptureLogProbAccumulator,
+    extract_chunk_logprob_tokens,
+    logprob_from_probability,
+    probability_from_logprob,
+)
 
 if TYPE_CHECKING:
     import openai
@@ -141,6 +147,21 @@ class OpenAIState(State):
             self.content[-1].text += text
         else:
             self.content.append(TextContent(type="text", text=text))
+
+    def rewind_text(self, n_chars: int) -> None:
+        remaining = max(0, int(n_chars))
+        while remaining > 0 and self.content:
+            last = self.content[-1]
+            if not isinstance(last, TextContent):
+                break
+            if len(last.text) > remaining:
+                last.text = last.text[:-remaining]
+                remaining = 0
+            else:
+                remaining -= len(last.text)
+                self.content.pop()
+        if remaining > 0:
+            raise RuntimeError("Cannot rewind more text than is currently present in OpenAIState content")
 
     def get_active_message(self) -> Message | None:
         if self.active_role is None:
@@ -346,12 +367,12 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
         request_logprobs = self.logprobs
         top_logprobs = self.top_k if request_logprobs else None
         if self._is_openrouter_client():
-            supports_logprobs, supports_top_logprobs = self._openrouter_logprobs_capability(request_kwargs)
-            if not supports_logprobs:
-                request_logprobs = False
-                top_logprobs = None
-            elif not supports_top_logprobs:
-                top_logprobs = None
+            mode, top_logprobs = self._openrouter_effective_logprobs_mode(
+                request_kwargs=request_kwargs,
+                enable_logprobs=request_logprobs,
+                top_logprobs=top_logprobs,
+            )
+            request_logprobs = mode != "disabled"
 
         with self.client.streaming_chat_completions(
             model=self.model,
@@ -400,37 +421,44 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
                 if len(content) == 0:
                     continue
                 self.state.apply_text(content)
-                # Rather paranoid check, as we have a few slightly different
-                # apis which are "almost" openai compatible...
-                if (
-                    hasattr(choice, "logprobs")
-                    and choice.logprobs is not None
-                    and hasattr(choice.logprobs, "content")
-                    and choice.logprobs.content is not None
-                    and len(choice.logprobs.content) > 0
-                ):
-                    tokens = choice.logprobs.content
-                    for token in tokens:
-                        yield TokenOutput(
-                            value=content if len(tokens) == 1 else token.token,
-                            # amortized latency
-                            latency_ms=latency_ms / len(tokens),
-                            token=Token(
-                                token=token.token,
-                                bytes=b"" if token.bytes is None else base64.b64encode(bytes(token.bytes)),
-                                prob=2.718**token.logprob,
-                            ),
-                            top_k=[
-                                Token(
-                                    token=tok.token,
-                                    bytes=b"" if tok.bytes is None else base64.b64encode(bytes(tok.bytes)),
-                                    prob=2.718**tok.logprob,
-                                )
-                                for tok in token.top_logprobs
-                            ],
-                            is_generated=True,
-                        )
-                else:
+                normalized_tokens = extract_chunk_logprob_tokens(choice)
+                if not normalized_tokens:
+                    yield TextOutput(value=delta.content, is_generated=True, latency_ms=latency_ms)
+                    continue
+
+                emitted_token_output = False
+                token_count = max(1, len(normalized_tokens))
+                for token_payload in normalized_tokens:
+                    token_text = token_payload.token or (content if len(normalized_tokens) == 1 else "")
+                    if token_text == "":
+                        continue
+
+                    emitted_token_output = True
+                    yield TokenOutput(
+                        value=content if len(normalized_tokens) == 1 else token_text,
+                        # amortized latency
+                        latency_ms=latency_ms / token_count,
+                        token=Token(
+                            token=token_text,
+                            bytes=b"" if token_payload.token_bytes is None else base64.b64encode(token_payload.token_bytes),
+                            prob=probability_from_logprob(token_payload.logprob),
+                        ),
+                        top_k=[
+                            Token(
+                                token=top_payload.token,
+                                bytes=(
+                                    b""
+                                    if top_payload.token_bytes is None
+                                    else base64.b64encode(top_payload.token_bytes)
+                                ),
+                                prob=probability_from_logprob(top_payload.logprob),
+                            )
+                            for top_payload in token_payload.top_logprobs
+                        ],
+                        is_generated=True,
+                    )
+
+                if not emitted_token_output:
                     yield TextOutput(value=delta.content, is_generated=True, latency_ms=latency_ms)
             elif (delta_audio := cast(dict | None, getattr(delta, "audio", None))) is not None:
                 transcript_chunk: str | None = None
@@ -604,16 +632,20 @@ class OpenAIRuleMixin(BaseOpenAIInterpreter):
         chunks = self.run(node.value, **kwargs)
         if node.capture:
             buffered_text = ""
+            capture_logprobs = CaptureLogProbAccumulator()
             for chunk in chunks:
                 # TODO: this isinstance check is pretty darn fragile.
                 # ~there must be a better way~
-                if isinstance(chunk, TextOutput):
+                if isinstance(chunk, TokenOutput):
+                    buffered_text += chunk.value
+                    capture_logprobs.add(chunk.value, logprob_from_probability(chunk.token.prob))
+                elif isinstance(chunk, TextOutput):
                     buffered_text += chunk.value
                 yield chunk
             yield self.state.apply_capture(
                 name=node.capture,
                 value=buffered_text,
-                log_prob=1,  # TODO
+                log_prob=capture_logprobs.logprob_for_text(buffered_text),
                 is_append=node.list_append,
             )
         else:

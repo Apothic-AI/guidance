@@ -7,7 +7,7 @@ from pydantic import TypeAdapter
 from .._ast import LiteralNode, RegexNode, RuleNode
 from .._schema import SamplingParams
 from .._tools import Tool
-from ..trace import OutputAttr, TextOutput
+from ..trace import OutputAttr, TextOutput, TokenOutput
 from ._base import Model
 from ._openai_base import (
     BaseOpenAIClientWrapper,
@@ -19,6 +19,7 @@ from ._openai_base import (
     OpenAIRegexMixin,
 )
 from ._openrouter_capabilities import _extract_openrouter_model_modalities, resolve_openrouter_model_metadata
+from ._streaming_utils import CaptureLogProbAccumulator, StreamingRegexStopMatcher, logprob_from_probability
 
 
 class OpenRouterClientWrapper(BaseOpenAIClientWrapper):
@@ -34,13 +35,19 @@ class OpenRouterClientWrapper(BaseOpenAIClientWrapper):
         logprobs: bool,
         **kwargs,
     ):
+        request_kwargs = {key: value for key, value in kwargs.items() if value is not None}
+        top_logprobs = request_kwargs.pop("top_logprobs", None)
+        if logprobs:
+            request_kwargs["logprobs"] = True
+            if top_logprobs is not None:
+                request_kwargs["top_logprobs"] = top_logprobs
+
         return self.client.chat.send(
             model=model,
             messages=messages,
-            logprobs=logprobs,
             stream=True,
             stream_options={"include_usage": True},
-            **kwargs,
+            **request_kwargs,
         )
 
 
@@ -48,37 +55,113 @@ class OpenRouterRuleMixin(BaseOpenAIInterpreter):
     def rule(self, node: RuleNode, **kwargs) -> Iterator[OutputAttr]:
         if node.suffix:
             raise ValueError("Suffix not yet supported for OpenRouter")
-        if node.stop_capture:
-            raise ValueError("Save stop text not yet supported for OpenRouter")
+        if node.stop_capture and not (node.stop and isinstance(node.stop, RegexNode)):
+            raise ValueError("Save stop text is only supported with stop_regex for OpenRouter.")
 
         kwargs = kwargs.copy()
         if node.temperature:
             kwargs["temperature"] = node.temperature
         if node.max_tokens:
             kwargs["max_tokens"] = node.max_tokens
+
+        stop_regex: str | None = None
         if node.stop:
             if isinstance(node.stop, LiteralNode):
                 kwargs["stop"] = node.stop.value
             elif isinstance(node.stop, RegexNode):
-                raise ValueError("Regex stop conditions are not yet supported for OpenRouter")
+                stop_regex = node.stop.regex
             else:
                 raise ValueError("Unsupported stop node type for OpenRouter")
+
+        if stop_regex is not None:
+            yield from self._rule_with_client_side_regex_stop(node=node, stop_regex=stop_regex, kwargs=kwargs)
+            return
 
         chunks = self.run(node.value, **kwargs)
         if node.capture:
             buffered_text = ""
+            capture_logprobs = CaptureLogProbAccumulator()
             for chunk in chunks:
-                if isinstance(chunk, TextOutput):
+                if isinstance(chunk, TokenOutput):
+                    buffered_text += chunk.value
+                    capture_logprobs.add(chunk.value, logprob_from_probability(chunk.token.prob))
+                elif isinstance(chunk, TextOutput):
                     buffered_text += chunk.value
                 yield chunk
             yield self.state.apply_capture(
                 name=node.capture,
                 value=buffered_text,
-                log_prob=1,  # TODO
+                log_prob=capture_logprobs.logprob_for_text(buffered_text),
                 is_append=node.list_append,
             )
         else:
             yield from chunks
+
+    def _rule_with_client_side_regex_stop(
+        self,
+        *,
+        node: RuleNode,
+        stop_regex: str,
+        kwargs: dict[str, Any],
+    ) -> Iterator[OutputAttr]:
+        matcher = StreamingRegexStopMatcher(stop_regex)
+        capture_logprobs = CaptureLogProbAccumulator()
+        matched_stop_text: str | None = None
+
+        chunks = self.run(node.value, **kwargs)
+        try:
+            for chunk in chunks:
+                incoming_text = ""
+                if isinstance(chunk, TokenOutput):
+                    incoming_text = chunk.value
+                    capture_logprobs.add(chunk.value, logprob_from_probability(chunk.token.prob))
+                elif isinstance(chunk, TextOutput):
+                    incoming_text = chunk.value
+                else:
+                    if not matcher.matched:
+                        yield chunk
+                    continue
+
+                if not incoming_text:
+                    continue
+
+                update = matcher.feed(incoming_text)
+                if update.emit_text:
+                    yield TextOutput(
+                        value=update.emit_text,
+                        is_generated=chunk.is_generated,
+                        latency_ms=chunk.latency_ms,
+                    )
+                if update.matched:
+                    matched_stop_text = update.stop_text
+                    if update.rewind_characters > 0:
+                        self.state.rewind_text(update.rewind_characters)
+                    break
+            else:
+                trailing = matcher.finish()
+                if trailing.emit_text:
+                    yield TextOutput(value=trailing.emit_text, is_generated=True)
+        finally:
+            if matcher.matched:
+                close = getattr(chunks, "close", None)
+                if callable(close):
+                    close()
+
+        emitted_text = matcher.emitted_text
+        if node.capture:
+            yield self.state.apply_capture(
+                name=node.capture,
+                value=emitted_text,
+                log_prob=capture_logprobs.logprob_for_text(emitted_text),
+                is_append=node.list_append,
+            )
+        if node.stop_capture and matched_stop_text is not None:
+            yield self.state.apply_capture(
+                name=node.stop_capture,
+                value=matched_stop_text,
+                log_prob=None,
+                is_append=False,
+            )
 
 
 class OpenRouterInterpreter(OpenRouterRuleMixin, OpenAIJSONMixin, OpenAIRegexMixin, BaseOpenAIInterpreter):
@@ -125,12 +208,12 @@ class OpenRouterInterpreter(OpenRouterRuleMixin, OpenAIJSONMixin, OpenAIRegexMix
 
         request_logprobs = self.logprobs
         top_logprobs = self.top_k if request_logprobs else None
-        supports_logprobs, supports_top_logprobs = self._openrouter_logprobs_capability(request_kwargs)
-        if not supports_logprobs:
-            request_logprobs = False
-            top_logprobs = None
-        elif not supports_top_logprobs:
-            top_logprobs = None
+        mode, top_logprobs = self._openrouter_effective_logprobs_mode(
+            request_kwargs=request_kwargs,
+            enable_logprobs=request_logprobs,
+            top_logprobs=top_logprobs,
+        )
+        request_logprobs = mode != "disabled"
 
         with self.client.streaming_chat_completions(
             model=self.model,

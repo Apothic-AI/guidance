@@ -13,6 +13,8 @@
 
    * [Install](#install)
    * [Features](#features)
+   * [OpenRouter Capability Handling](docs/openrouter-capabilities.md)
+   * [OpenRouter Grammar Findings](docs/openrouter-grammar-findings.md)
 
 
 ## Install

@@ -1,6 +1,8 @@
 import json
 from typing import Any, Iterator
 
+import pytest
+
 from guidance.models import _openai_base, _openrouter_capabilities
 
 
@@ -113,3 +115,36 @@ def test_openrouter_parameter_support_uses_model_metadata_without_provider_const
     assert interpreter._openrouter_parameter_supported_for_request(request_kwargs={}, parameter="top_k")
     assert interpreter._openrouter_supports_tools({})
     assert interpreter._openrouter_supports_response_format({})
+
+
+@pytest.mark.parametrize(
+    ("supports", "enable_logprobs", "top_logprobs", "expected_mode", "expected_top_logprobs"),
+    [
+        ((False, False), True, 5, "disabled", None),
+        ((True, False), True, 5, "logprobs_only", None),
+        ((True, True), True, 5, "logprobs_and_top_logprobs", 5),
+        (
+            (True, True),
+            True,
+            500,
+            "logprobs_and_top_logprobs",
+            _openrouter_capabilities._OPENROUTER_TOP_LOGPROBS_SAFE_MAX,
+        ),
+        ((True, True), False, 5, "disabled", None),
+    ],
+)
+def test_openrouter_effective_logprobs_mode(monkeypatch, supports, enable_logprobs, top_logprobs, expected_mode, expected_top_logprobs):  # noqa: ANN001,E501
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="openai/gpt-4o-mini",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(interpreter, "_openrouter_logprobs_capability", lambda request_kwargs: supports)
+
+    mode, effective_top_logprobs = interpreter._openrouter_effective_logprobs_mode(
+        request_kwargs={},
+        enable_logprobs=enable_logprobs,
+        top_logprobs=top_logprobs,
+    )
+    assert mode == expected_mode
+    assert effective_top_logprobs == expected_top_logprobs
