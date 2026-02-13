@@ -117,6 +117,26 @@ def test_openrouter_parameter_support_uses_model_metadata_without_provider_const
     assert interpreter._openrouter_supports_response_format({})
 
 
+def test_openrouter_grammar_support_requires_response_format_parameter(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="openai/gpt-4o-mini",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+
+    def fake_support(*, request_kwargs, parameter):  # noqa: ANN001
+        if parameter == "response_format":
+            return False
+        if parameter == "structured_outputs":
+            return True
+        return False
+
+    monkeypatch.setattr(interpreter, "_openrouter_parameter_supported_for_request", fake_support)
+
+    assert interpreter._openrouter_supports_response_format({}) is True
+    assert interpreter._openrouter_supports_grammar_response_format({}) is False
+
+
 @pytest.mark.parametrize(
     ("supports", "enable_logprobs", "top_logprobs", "expected_mode", "expected_top_logprobs"),
     [

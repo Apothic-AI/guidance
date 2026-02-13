@@ -16,9 +16,9 @@ from ._openai_base import (
     OpenAIAudioMixin,
     OpenAIImageMixin,
     OpenAIJSONMixin,
-    OpenAIRegexMixin,
 )
 from ._openrouter_capabilities import _extract_openrouter_model_modalities, resolve_openrouter_model_metadata
+from ._openrouter_grammar import OpenRouterGrammarMixin
 from ._streaming_utils import CaptureLogProbAccumulator, StreamingRegexStopMatcher, logprob_from_probability
 
 
@@ -164,7 +164,7 @@ class OpenRouterRuleMixin(BaseOpenAIInterpreter):
             )
 
 
-class OpenRouterInterpreter(OpenRouterRuleMixin, OpenAIJSONMixin, OpenAIRegexMixin, BaseOpenAIInterpreter):
+class OpenRouterInterpreter(OpenRouterRuleMixin, OpenRouterGrammarMixin, OpenAIJSONMixin, BaseOpenAIInterpreter):
     def _is_openrouter_client(self) -> bool:
         return True
 

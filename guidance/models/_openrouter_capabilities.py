@@ -384,6 +384,13 @@ class OpenRouterCapabilityMixin:
             parameter="structured_outputs",
         )
 
+    def _openrouter_supports_grammar_response_format(self, request_kwargs: dict[str, Any]) -> bool:
+        # `structured_outputs` in model metadata implies JSON schema capability, not necessarily free-form grammar.
+        return self._openrouter_parameter_supported_for_request(
+            request_kwargs=request_kwargs,
+            parameter="response_format",
+        )
+
     def _openrouter_supports_reasoning(self, request_kwargs: dict[str, Any]) -> bool:
         return self._openrouter_parameter_supported_for_request(
             request_kwargs=request_kwargs,

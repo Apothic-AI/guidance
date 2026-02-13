@@ -1,6 +1,6 @@
 # OpenRouter Grammar Findings (Current)
 
-This document records what we have verified so far about OpenRouter grammar support, and how it relates to `guidance` semantics.
+This document records what we have verified about OpenRouter grammar support, and how it maps to `guidance` semantics.
 
 ## Verified API Surface
 
@@ -21,7 +21,7 @@ References:
 - https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request.md
 - https://openrouter.ai/openapi.json
 
-## Important Observation
+## Important Observations
 
 OpenRouter exposes a provider-facing grammar-constrained output mode, but it is distinct from `guidance` `gen(stop_regex=..., save_stop_text=...)` runtime semantics.
 
@@ -34,7 +34,7 @@ OpenRouter exposes a provider-facing grammar-constrained output mode, but it is 
 
 These are streaming control semantics, not just output-shape constraints.
 
-## Why Grammar Mode Is Not Yet a Drop-In for `stop_regex`
+## Why Grammar Is Not a Drop-In for `stop_regex`
 
 Using provider grammar directly for `stop_regex`/`stop_capture` is non-trivial:
 
@@ -45,20 +45,31 @@ Using provider grammar directly for `stop_regex`/`stop_capture` is non-trivial:
 
 Because of this, client-side streaming enforcement remains the correctness-first implementation for `stop_regex` and `stop_capture`.
 
-## Current Guidance Position
+## Implemented in Guidance
 
-- We keep client-side `stop_regex` + `stop_capture` for OpenRouter today.
+- We keep client-side `stop_regex` + `stop_capture` for OpenRouter.
 - We preserve provider-side literal `stop` behavior for literal stops.
-- We continue capability-gated request shaping (for example `logprobs`, `top_logprobs`, `tools`, `response_format`).
+- We added an OpenRouter provider-grammar fast path for grammar/regex nodes:
+  - send `response_format={"type":"grammar","grammar": node.ll_grammar()}`
+  - only when provider routing reports `response_format` support
+  - validate returned text locally with `node.match(...)`
+- We fail closed:
+  - if provider rejects grammar requests, raise a grammar-specific `ValueError`
+  - if provider returns text that does not satisfy the grammar, raise a validation `ValueError`
 
-## Candidate Fast-Path Strategy (Future)
+## Runtime Variability (Observed)
 
-A provider-grammar fast path is still possible, but should be phased:
+Provider behavior is not uniform even when endpoint metadata advertises `response_format` support:
 
-1. Gate by explicit capability and provider routing conditions.
-2. Start with strict subsets where semantics are easier to prove.
-3. Keep client-side matcher as fallback and as semantic source of truth.
-4. Add integration parity tests comparing fast-path vs client-side behavior.
+- Some providers appear to ignore grammar constraints for `response_format.type="grammar"` and return unconstrained text.
+- Some providers reject grammar requests at runtime.
+- Because of this, local post-generation grammar validation is required to preserve correctness guarantees.
+
+## Remaining Work
+
+1. Expand provider-aware grammar capability detection beyond `response_format` metadata.
+2. Add stronger provider-specific compatibility tests and a known-good model/provider matrix.
+3. Add targeted optimizations for the supported Lark/regex subset used by OpenRouter providers.
 
 ## Test Environment Notes
 

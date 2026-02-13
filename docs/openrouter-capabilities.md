@@ -38,6 +38,16 @@
   - all generated text is emitted
   - `stop_capture` remains unset
 
+## OpenRouter Grammar Fast Path
+
+- `guidance` now attempts provider-side grammar-constrained decoding for OpenRouter grammar/regex nodes via:
+  - `response_format={"type":"grammar","grammar": "<ll_grammar>"}`.
+- This path is gated on OpenRouter metadata indicating `response_format` support for the current provider routing.
+- Output is validated locally against the original `guidance` grammar after generation:
+  - provider rejection raises a grammar-specific error,
+  - unconstrained/mismatched output raises validation error.
+- This is intentionally fail-closed, since provider support quality varies in practice.
+
 ## Current Limits
 
 - `suffix` remains unsupported for OpenRouter rule generation.

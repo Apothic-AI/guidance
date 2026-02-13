@@ -15,9 +15,16 @@ from ._openrouter_capabilities import (
     _normalized_openrouter_api_base,
     resolve_openrouter_model_metadata,
 )
+from ._openrouter_grammar import OpenRouterGrammarMixin
 
 
-class OpenAIInterpreter(OpenAIRuleMixin, OpenAIJSONMixin, OpenAIRegexMixin, BaseOpenAIInterpreter):
+class OpenAIInterpreter(
+    OpenAIRuleMixin,
+    OpenAIJSONMixin,
+    OpenRouterGrammarMixin,
+    OpenAIRegexMixin,
+    BaseOpenAIInterpreter,
+):
     def __init__(
         self,
         model: str,
