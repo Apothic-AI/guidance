@@ -10,6 +10,11 @@ from ._openai_base import (
     OpenAIRegexMixin,
     OpenAIRuleMixin,
 )
+from ._openrouter_capabilities import (
+    _extract_openrouter_model_modalities,
+    _normalized_openrouter_api_base,
+    resolve_openrouter_model_metadata,
+)
 
 
 class OpenAIInterpreter(OpenAIRuleMixin, OpenAIJSONMixin, OpenAIRegexMixin, BaseOpenAIInterpreter):
@@ -67,9 +72,35 @@ class OpenAI(Model):
             names include `base_url` and `organization`
         """
 
-        if "audio-preview" in model:
+        base_url = str(kwargs.get("base_url", "")).strip().lower()
+        using_openrouter = "openrouter.ai" in base_url
+
+        has_audio = False
+        has_image = False
+        if using_openrouter:
+            model_meta = resolve_openrouter_model_metadata(
+                model=model,
+                api_base=_normalized_openrouter_api_base(base_url),
+                api_key=api_key or "",
+            )
+            input_modalities, output_modalities = _extract_openrouter_model_modalities(model_meta)
+            has_audio = "audio" in input_modalities or "audio" in output_modalities
+            has_image = "image" in input_modalities
+
+        if not using_openrouter:
+            has_audio = "audio-preview" in model
+            has_image = model.startswith("gpt-4o") or model.startswith("o1")
+        else:
+            if not has_audio and not has_image and "audio-preview" in model:
+                has_audio = True
+            if not has_audio and not has_image and (model.startswith("gpt-4o") or model.startswith("o1")):
+                has_image = True
+
+        if has_audio and has_image:
+            interpreter_cls = type("OpenAIAudioImageInterpreter", (OpenAIAudioMixin, OpenAIImageMixin, OpenAIInterpreter), {})
+        elif has_audio:
             interpreter_cls = type("OpenAIAudioInterpreter", (OpenAIAudioMixin, OpenAIInterpreter), {})
-        elif model.startswith("gpt-4o") or model.startswith("o1"):
+        elif has_image:
             interpreter_cls = type("OpenAIImageInterpreter", (OpenAIImageMixin, OpenAIInterpreter), {})
         else:
             interpreter_cls = OpenAIInterpreter
