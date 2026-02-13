@@ -16,6 +16,9 @@ _OPENROUTER_MODELS_CACHE: dict[tuple[str, str], tuple[float, dict[str, dict[str,
 _OPENROUTER_MODELS_CACHE_LOCK = threading.Lock()
 _DEFAULT_OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
 _OPENROUTER_TOP_LOGPROBS_SAFE_MAX = 20
+_OPENROUTER_PROVIDER_GRAMMAR_FORMAT_HINTS: dict[str, Literal["ll-lark", "gbnf"]] = {
+    "fireworks": "gbnf",
+}
 
 
 def _normalized_openrouter_api_base(raw_base: str | None) -> str:
@@ -390,6 +393,15 @@ class OpenRouterCapabilityMixin:
             request_kwargs=request_kwargs,
             parameter="response_format",
         )
+
+    def _openrouter_grammar_format_for_request(self, request_kwargs: dict[str, Any]) -> Literal["ll-lark", "gbnf"]:
+        provider_order, _ = self._openrouter_provider_settings(request_kwargs)
+        if provider_order:
+            first = provider_order[0].strip().lower()
+            for marker, grammar_format in _OPENROUTER_PROVIDER_GRAMMAR_FORMAT_HINTS.items():
+                if first == marker or marker in first:
+                    return grammar_format
+        return "ll-lark"
 
     def _openrouter_supports_reasoning(self, request_kwargs: dict[str, Any]) -> bool:
         return self._openrouter_parameter_supported_for_request(

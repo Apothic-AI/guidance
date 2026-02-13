@@ -2,6 +2,18 @@
 
 `guidance` resolves OpenRouter features dynamically from OpenRouter metadata and applies capability-aware request shaping.
 
+## Metadata
+
+- Status: current
+- Last updated: 2026-02-13
+- Scope: runtime capability detection and request shaping for OpenRouter paths
+
+Related docs:
+
+- `docs/openrouter-grammar-findings.md`
+- `docs/openai-fireworks-openrouter-grammar-worklog.md`
+- `docs/grammar-integration-docs-index.md`
+
 ## Capability Resolution
 
 - Model-level metadata is fetched from `GET /api/v1/models` and cached for 1 hour.
@@ -20,6 +32,10 @@
   - missing `bytes`
   - missing or null `top_logprobs`
   - mixed dict/object payloads
+- For direct Fireworks base URL usage, Guidance also handles streamed generated text arriving as
+  `delta.reasoning_content` when `delta.content` is empty.
+  - This was observed in grammar mode for tested Fireworks routes/models.
+  - We should verify whether OpenRouter Fireworks-backed routes require the same handling.
 
 ## Capture Log Probability
 
@@ -41,12 +57,22 @@
 ## OpenRouter Grammar Fast Path
 
 - `guidance` now attempts provider-side grammar-constrained decoding for OpenRouter grammar/regex nodes via:
-  - `response_format={"type":"grammar","grammar": "<ll_grammar>"}`.
+  - `response_format={"type":"grammar","grammar": "<serialized_grammar>"}`.
+- Serializer selection is provider-aware:
+  - default: Guidance LL/Lark,
+  - initial provider hint: `Fireworks -> GBNF`.
 - This path is gated on OpenRouter metadata indicating `response_format` support for the current provider routing.
 - Output is validated locally against the original `guidance` grammar after generation:
   - provider rejection raises a grammar-specific error,
   - unconstrained/mismatched output raises validation error.
 - This is intentionally fail-closed, since provider support quality varies in practice.
+
+Probe harness for provider/format behavior:
+
+- `scripts/openrouter_grammar_probe.py`
+- writes matrix artifacts under `docs/openrouter-grammar-probe-matrix.*`
+- See full consolidated worklog:
+  - `docs/openai-fireworks-openrouter-grammar-worklog.md`
 
 ## Current Limits
 

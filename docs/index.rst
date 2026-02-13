@@ -24,3 +24,8 @@ Contents
    API reference <api>
    API examples <api_examples>
    The Art of Prompt Design <art_of_prompt_design>
+
+Integration design/worklog markdown files are kept under ``docs/``.
+For grammar-path integration work, start with:
+
+- ``docs/grammar-integration-docs-index.md``

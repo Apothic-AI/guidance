@@ -1,0 +1,151 @@
+{
+  "generated_at": "2026-02-13T10:52:46.525162+00:00",
+  "api_base": "https://openrouter.ai/api/v1",
+  "model": "z-ai/glm-5",
+  "results": [
+    {
+      "provider": "AtlasCloud",
+      "grammar_format": "ll-lark",
+      "outcome": "accepts+ignores",
+      "status_code": 200,
+      "generated_text": "",
+      "detail": "provider accepted request but returned empty/non-text output"
+    },
+    {
+      "provider": "AtlasCloud",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 429,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "AtlasCloud",
+      "grammar_format": "minimal-lark",
+      "outcome": "reject",
+      "status_code": 429,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Friendli",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Friendli",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Friendli",
+      "grammar_format": "minimal-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "GMICloud",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "GMICloud",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "GMICloud",
+      "grammar_format": "minimal-lark",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Parasail",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 429,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Parasail",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 429,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Parasail",
+      "grammar_format": "minimal-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Venice",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Venice",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Venice",
+      "grammar_format": "minimal-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Novita",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 502,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Novita",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 502,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "provider": "Novita",
+      "grammar_format": "minimal-lark",
+      "outcome": "reject",
+      "status_code": 502,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    }
+  ]
+}

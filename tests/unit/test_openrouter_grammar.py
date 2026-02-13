@@ -132,3 +132,25 @@ def test_openrouter_grammar_applies_captures_from_match(monkeypatch):
 
     assert any(isinstance(output, TextOutput) and output.value == "YES" for output in outputs)
     assert interpreter.state.captures["choice"]["value"] == "YES"
+
+
+def test_openrouter_grammar_uses_gbnf_for_fireworks_provider(monkeypatch):
+    interpreter = _interpreter()
+    monkeypatch.setattr(interpreter, "_openrouter_supports_grammar_response_format", lambda request_kwargs: True)
+    seen: dict[str, Any] = {}
+
+    def fake_run(**kwargs):  # noqa: ANN001
+        seen.update(kwargs)
+        yield TextOutput(value="YES", is_generated=True)
+
+    monkeypatch.setattr(interpreter, "_run", fake_run)
+    _ = list(
+        interpreter.regex(
+            RegexNode("YES|NO"),
+            extra_body={"provider": {"order": ["Fireworks"], "require_parameters": True}},
+        )
+    )
+    assert seen["response_format"]["type"] == "grammar"
+    grammar = seen["response_format"]["grammar"]
+    assert "root" in grammar
+    assert "%llguidance" not in grammar

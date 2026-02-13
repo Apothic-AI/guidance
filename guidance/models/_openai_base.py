@@ -246,6 +246,9 @@ class BaseOpenAIClientWrapper(ABC):
         """Streaming chat completions."""
         raise NotImplementedError("This method should be implemented by subclasses.")
 
+    def responses_create(self, **kwargs) -> Any:  # noqa: ANN401
+        raise NotImplementedError("This client wrapper does not implement OpenAI Responses API access.")
+
 
 class OpenAIClientWrapper(BaseOpenAIClientWrapper):
     def __init__(self, client: "openai.OpenAI"):
@@ -278,6 +281,9 @@ class OpenAIClientWrapper(BaseOpenAIClientWrapper):
             stream_options={"include_usage": True},
             **request_kwargs,
         )
+
+    def responses_create(self, **kwargs) -> Any:  # noqa: ANN401
+        return self.client.responses.create(**kwargs)
 
 
 class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState]):
@@ -395,6 +401,7 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
         final_tool_calls: dict[int, ToolCall] = {}
         # We made another call to the OpenAI API, so we count it as a round trip.
         usage = TokenUsage(round_trips=1)
+        is_fireworks_client = "fireworks.ai" in self._client_base_url()
         for chunk in chunks:
             t1 = time.time()
             latency_ms = (t1 - t0) * 1000
@@ -415,15 +422,22 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
                 continue
             choice = chunk.choices[0]
             delta = choice.delta
-            if delta.content is not None:
+            generated_chunk = delta.content
+            if generated_chunk is None and is_fireworks_client:
+                # Fireworks may stream generated text in `reasoning_content` for some models/routes.
+                reasoning_chunk = getattr(delta, "reasoning_content", None)
+                if isinstance(reasoning_chunk, str):
+                    generated_chunk = reasoning_chunk
+
+            if generated_chunk is not None:
                 assert audio is None
-                content = delta.content
+                content = generated_chunk
                 if len(content) == 0:
                     continue
                 self.state.apply_text(content)
                 normalized_tokens = extract_chunk_logprob_tokens(choice)
                 if not normalized_tokens:
-                    yield TextOutput(value=delta.content, is_generated=True, latency_ms=latency_ms)
+                    yield TextOutput(value=content, is_generated=True, latency_ms=latency_ms)
                     continue
 
                 emitted_token_output = False
@@ -459,7 +473,7 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
                     )
 
                 if not emitted_token_output:
-                    yield TextOutput(value=delta.content, is_generated=True, latency_ms=latency_ms)
+                    yield TextOutput(value=content, is_generated=True, latency_ms=latency_ms)
             elif (delta_audio := cast(dict | None, getattr(delta, "audio", None))) is not None:
                 transcript_chunk: str | None = None
                 if audio is None:

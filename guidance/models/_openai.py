@@ -10,6 +10,7 @@ from ._openai_base import (
     OpenAIRegexMixin,
     OpenAIRuleMixin,
 )
+from ._openai_provider_grammar import OpenAIProviderGrammarMixin
 from ._openrouter_capabilities import (
     _extract_openrouter_model_modalities,
     _normalized_openrouter_api_base,
@@ -21,6 +22,7 @@ from ._openrouter_grammar import OpenRouterGrammarMixin
 class OpenAIInterpreter(
     OpenAIRuleMixin,
     OpenAIJSONMixin,
+    OpenAIProviderGrammarMixin,
     OpenRouterGrammarMixin,
     OpenAIRegexMixin,
     BaseOpenAIInterpreter,

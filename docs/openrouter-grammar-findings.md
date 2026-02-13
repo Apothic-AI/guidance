@@ -2,6 +2,18 @@
 
 This document records what we have verified about OpenRouter grammar support, and how it maps to `guidance` semantics.
 
+## Metadata
+
+- Status: current
+- Last updated: 2026-02-13
+- Scope: OpenRouter grammar behavior, probe outcomes, and follow-up risks
+
+Related docs:
+
+- `docs/openrouter-capabilities.md`
+- `docs/openai-fireworks-openrouter-grammar-worklog.md`
+- `docs/grammar-integration-docs-index.md`
+
 ## Verified API Surface
 
 From OpenRouter API docs and OpenAPI schema:
@@ -20,6 +32,9 @@ References:
 
 - https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request.md
 - https://openrouter.ai/openapi.json
+- https://openrouter.ai/docs/guides/features/structured-outputs.md
+- https://docs.fireworks.ai/structured-responses/structured-response-formatting.md
+- https://docs.fireworks.ai/structured-responses/structured-output-grammar-based.md
 
 ## Important Observations
 
@@ -50,7 +65,10 @@ Because of this, client-side streaming enforcement remains the correctness-first
 - We keep client-side `stop_regex` + `stop_capture` for OpenRouter.
 - We preserve provider-side literal `stop` behavior for literal stops.
 - We added an OpenRouter provider-grammar fast path for grammar/regex nodes:
-  - send `response_format={"type":"grammar","grammar": node.ll_grammar()}`
+  - send `response_format={"type":"grammar","grammar": ...}`
+  - serializer is provider-aware:
+    - default: Guidance LL/Lark (`node.ll_grammar()`),
+    - provider hint `Fireworks`: GBNF adapter output.
   - only when provider routing reports `response_format` support
   - validate returned text locally with `node.match(...)`
 - We fail closed:
@@ -65,11 +83,50 @@ Provider behavior is not uniform even when endpoint metadata advertises `respons
 - Some providers reject grammar requests at runtime.
 - Because of this, local post-generation grammar validation is required to preserve correctness guarantees.
 
+## Probe Matrix (ll-lark vs gbnf vs minimal-lark)
+
+A probe harness was added and executed against `z-ai/glm-5`:
+
+- Script: `scripts/openrouter_grammar_probe.py`
+- Artifacts:
+  - `docs/openrouter-grammar-probe-matrix.md`
+  - `docs/openrouter-grammar-probe-matrix.json`
+
+Observed sample outcomes (Feb 13, 2026):
+
+- `AtlasCloud`: `ll-lark` accepted but did not obey constraints (empty/non-text output), `gbnf`/`minimal-lark` rejected due provider errors/rate limits.
+- `Friendli`, `GMICloud`, `Venice`: all three formats rejected.
+- `Parasail`: all tested formats rejected/rate-limited.
+- `Novita`: all tested formats rejected (502 provider errors).
+
+This confirms that format choice alone does not guarantee constrained behavior across routes.
+
+## Fireworks Streaming Nuance (Potentially Relevant to OpenRouter)
+
+In live Fireworks grammar-mode testing (direct Fireworks endpoint), generated text streamed in
+`delta.reasoning_content` rather than `delta.content` for the tested route/model.
+
+Why this matters for OpenRouter:
+
+- OpenRouter can route to Fireworks and other providers that may share backend constrained-decoding internals.
+- If OpenRouter forwards similar payload structure for some routes, content extraction may require parallel handling.
+
+Current status:
+
+- Guidance now handles this field for direct Fireworks endpoints.
+- OpenRouter route-specific behavior still needs deeper payload-level validation.
+
+Follow-up:
+
+- inspect Fireworks SDK grammar-mode stream handling to confirm canonical semantics.
+- compare OpenRouter streamed payloads on Fireworks-backed routes to decide if equivalent parsing should be generalized.
+
 ## Remaining Work
 
-1. Expand provider-aware grammar capability detection beyond `response_format` metadata.
-2. Add stronger provider-specific compatibility tests and a known-good model/provider matrix.
-3. Add targeted optimizations for the supported Lark/regex subset used by OpenRouter providers.
+1. Expand provider-aware serializer hints beyond the initial `Fireworks -> gbnf` mapping using repeated probe data.
+2. Maintain a known-good model/provider/format matrix and use it for safer auto-routing defaults.
+3. Add adaptive retries/fallback policy (while staying fail-closed) for transient provider errors (429/5xx).
+4. Validate whether OpenRouter Fireworks-backed streams expose text via `reasoning_content` and update parser logic if needed.
 
 ## Test Environment Notes
 

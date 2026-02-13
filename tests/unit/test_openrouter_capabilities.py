@@ -137,6 +137,32 @@ def test_openrouter_grammar_support_requires_response_format_parameter(monkeypat
     assert interpreter._openrouter_supports_grammar_response_format({}) is False
 
 
+def test_openrouter_grammar_format_defaults_to_ll_lark():
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="openai/gpt-4o-mini",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    assert interpreter._openrouter_grammar_format_for_request({}) == "ll-lark"
+
+
+def test_openrouter_grammar_format_uses_provider_hint():
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="openai/gpt-4o-mini",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    request_kwargs = {
+        "extra_body": {
+            "provider": {
+                "order": ["Fireworks"],
+                "require_parameters": True,
+            }
+        }
+    }
+    assert interpreter._openrouter_grammar_format_for_request(request_kwargs) == "gbnf"
+
+
 @pytest.mark.parametrize(
     ("supports", "enable_logprobs", "top_logprobs", "expected_mode", "expected_top_logprobs"),
     [

@@ -1,5 +1,19 @@
 # OpenRouter: Logprobs + Client-Side `stop_regex`/`stop_capture` Implementation Plan
 
+## Status
+
+- Last updated: 2026-02-13
+- Status: historical plan
+
+This is a historical planning document.
+
+- Core items in this plan have been implemented.
+- Current behavior and follow-up work are tracked in:
+  - `docs/openrouter-capabilities.md`
+  - `docs/openrouter-grammar-findings.md`
+  - `docs/openai-fireworks-openrouter-grammar-worklog.md`
+  - `docs/grammar-integration-docs-index.md`
+
 ## Scope
 This plan covers two deliverables for OpenRouter-backed models in `guidance`:
 
