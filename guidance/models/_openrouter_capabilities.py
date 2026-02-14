@@ -1,5 +1,5 @@
-import json
 import importlib.resources as importlib_resources
+import json
 import threading
 import time
 from typing import Any, Literal
@@ -18,8 +18,11 @@ _OPENROUTER_MODELS_CACHE_LOCK = threading.Lock()
 _DEFAULT_OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
 _OPENROUTER_TOP_LOGPROBS_SAFE_MAX = 20
 _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_FILENAME = "openrouter_provider_grammar_capabilities.json"
+_OPENROUTER_PROVIDER_GRAMMAR_POLICY_FILENAME = "openrouter_provider_grammar_policy.json"
 _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE: dict[str, Any] | None = None
 _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_LOCK = threading.Lock()
+_OPENROUTER_PROVIDER_GRAMMAR_POLICY_CACHE: dict[str, Any] | None = None
+_OPENROUTER_PROVIDER_GRAMMAR_POLICY_LOCK = threading.Lock()
 _OPENROUTER_PROVIDER_GRAMMAR_FORMAT_HINTS: dict[str, Literal["ll-lark", "gbnf"]] = {
     "fireworks": "gbnf",
 }
@@ -78,28 +81,150 @@ def _extract_openrouter_model_modalities(model_meta: dict[str, Any] | None) -> t
     return _to_modalities(architecture.get("input_modalities")), _to_modalities(architecture.get("output_modalities"))
 
 
+def _load_openrouter_resource_payload(filename: str) -> dict[str, Any]:
+    payload: dict[str, Any] = {}
+    try:
+        data_path = importlib_resources.files("guidance").joinpath("resources").joinpath(filename)
+        parsed = json.loads(data_path.read_text(encoding="utf-8"))
+        if isinstance(parsed, dict):
+            payload = parsed
+    except Exception:  # noqa: BLE001
+        payload = {}
+    return payload
+
+
+def load_openrouter_provider_grammar_policy() -> dict[str, Any]:
+    global _OPENROUTER_PROVIDER_GRAMMAR_POLICY_CACHE
+    with _OPENROUTER_PROVIDER_GRAMMAR_POLICY_LOCK:
+        if _OPENROUTER_PROVIDER_GRAMMAR_POLICY_CACHE is not None:
+            return dict(_OPENROUTER_PROVIDER_GRAMMAR_POLICY_CACHE)
+
+    payload = _load_openrouter_resource_payload(_OPENROUTER_PROVIDER_GRAMMAR_POLICY_FILENAME)
+
+    with _OPENROUTER_PROVIDER_GRAMMAR_POLICY_LOCK:
+        _OPENROUTER_PROVIDER_GRAMMAR_POLICY_CACHE = dict(payload)
+    return dict(payload)
+
+
+def _merged_openrouter_provider_grammar_payload(
+    capabilities_payload: dict[str, Any],
+    policy_payload: dict[str, Any],
+) -> dict[str, Any]:
+    merged = dict(capabilities_payload) if isinstance(capabilities_payload, dict) else {}
+
+    raw_capabilities_providers = capabilities_payload.get("providers") if isinstance(capabilities_payload, dict) else None
+    capabilities_providers = raw_capabilities_providers if isinstance(raw_capabilities_providers, dict) else {}
+    raw_policy_providers = policy_payload.get("providers") if isinstance(policy_payload, dict) else None
+    policy_providers = raw_policy_providers if isinstance(raw_policy_providers, dict) else {}
+
+    providers: dict[str, dict[str, Any]] = {}
+
+    for key, raw_entry in policy_providers.items():
+        if not isinstance(raw_entry, dict):
+            continue
+        provider_key = _normalized_openrouter_provider_name(key)
+        if not provider_key:
+            continue
+        provider_name = str(raw_entry.get("provider_name", "")).strip() or key
+        recommended = str(raw_entry.get("recommended_grammar_format", "")).strip().lower()
+        if recommended not in ("ll-lark", "gbnf"):
+            recommended = ""
+        supports_grammar = raw_entry.get("supports_openrouter_grammar_response_format")
+        providers[provider_key] = {
+            "provider_name": provider_name,
+            "supports_grammar": bool(supports_grammar) if isinstance(supports_grammar, bool) else None,
+            "recommended_format": recommended or None,
+            "priority": int(raw_entry.get("priority", 0) or 0),
+            "support_level": str(raw_entry.get("support_level", "")).strip() or None,
+            "support_reason": str(raw_entry.get("support_reason", "")).strip() or None,
+            "source_urls": raw_entry.get("source_urls", []),
+        }
+
+    for key, raw_entry in capabilities_providers.items():
+        if not isinstance(raw_entry, dict):
+            continue
+        provider_key = _normalized_openrouter_provider_name(key)
+        if not provider_key:
+            continue
+        provider_name = str(raw_entry.get("provider_name", "")).strip() or key
+        recommended = str(raw_entry.get("recommended_format", "")).strip().lower()
+        if recommended not in ("ll-lark", "gbnf"):
+            recommended = ""
+        supports_grammar = raw_entry.get("supports_grammar")
+        existing = providers.get(provider_key)
+        if not isinstance(existing, dict):
+            providers[provider_key] = {
+                "provider_name": provider_name,
+                "supports_grammar": bool(supports_grammar) if isinstance(supports_grammar, bool) else None,
+                "recommended_format": recommended or None,
+                "priority": 0,
+                "support_level": None,
+                "support_reason": str(raw_entry.get("support_reason", "")).strip() or None,
+                "source_urls": [],
+            }
+            continue
+
+        # Docs policy is authoritative for negatives; live probe still upgrades to positive support if observed.
+        if supports_grammar is True:
+            existing["supports_grammar"] = True
+        elif existing.get("supports_grammar") is None and isinstance(supports_grammar, bool):
+            existing["supports_grammar"] = supports_grammar
+        if not existing.get("recommended_format") and recommended:
+            existing["recommended_format"] = recommended
+        if not existing.get("support_reason"):
+            existing["support_reason"] = str(raw_entry.get("support_reason", "")).strip() or None
+
+    ranked: list[str] = []
+    ranked_seen: set[str] = set()
+    raw_ranked = policy_payload.get("ranked_grammar_providers") if isinstance(policy_payload, dict) else None
+    if isinstance(raw_ranked, list):
+        for provider in raw_ranked:
+            text = str(provider).strip()
+            key = _normalized_openrouter_provider_name(text)
+            if not text or key in ranked_seen:
+                continue
+            provider_entry = providers.get(key)
+            if isinstance(provider_entry, dict) and provider_entry.get("supports_grammar") is False:
+                continue
+            ranked_seen.add(key)
+            ranked.append(text)
+
+    additional_ranked = sorted(
+        (
+            entry
+            for entry in providers.values()
+            if isinstance(entry, dict) and entry.get("supports_grammar") is True
+        ),
+        key=lambda entry: (-int(entry.get("priority", 0) or 0), str(entry.get("provider_name", "")).lower()),
+    )
+    for entry in additional_ranked:
+        provider_name = str(entry.get("provider_name", "")).strip()
+        key = _normalized_openrouter_provider_name(provider_name)
+        if not provider_name or key in ranked_seen:
+            continue
+        ranked_seen.add(key)
+        ranked.append(provider_name)
+
+    merged["providers"] = providers
+    merged["ranked_grammar_providers"] = ranked
+    if not isinstance(merged.get("models_summary"), dict):
+        merged["models_summary"] = {}
+    return merged
+
+
 def load_openrouter_provider_grammar_capabilities() -> dict[str, Any]:
     global _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE
     with _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_LOCK:
         if _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE is not None:
             return dict(_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE)
 
-    payload: dict[str, Any] = {}
-    try:
-        data_path = (
-            importlib_resources.files("guidance")
-            .joinpath("resources")
-            .joinpath(_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_FILENAME)
-        )
-        parsed = json.loads(data_path.read_text(encoding="utf-8"))
-        if isinstance(parsed, dict):
-            payload = parsed
-    except Exception:  # noqa: BLE001
-        payload = {}
+    payload = _load_openrouter_resource_payload(_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_FILENAME)
+    policy_payload = load_openrouter_provider_grammar_policy()
+    merged_payload = _merged_openrouter_provider_grammar_payload(payload, policy_payload)
 
     with _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_LOCK:
-        _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE = dict(payload)
-    return dict(payload)
+        _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE = dict(merged_payload)
+    return dict(merged_payload)
 
 
 def fetch_openrouter_models_catalog(
@@ -294,10 +419,14 @@ class OpenRouterCapabilityMixin:
     def _openrouter_known_supported_grammar_providers(self, model: str | None = None) -> list[str]:
         entry = self._openrouter_known_grammar_model_entry(model)
         if not isinstance(entry, dict):
-            return []
-        providers = entry.get("supported_providers")
-        if not isinstance(providers, list):
-            return []
+            payload = self._openrouter_grammar_capabilities_payload()
+            providers = payload.get("ranked_grammar_providers")
+            if not isinstance(providers, list):
+                return []
+        else:
+            providers = entry.get("supported_providers")
+            if not isinstance(providers, list):
+                providers = []
         seen: set[str] = set()
         output: list[str] = []
         for provider in providers:
@@ -307,6 +436,15 @@ class OpenRouterCapabilityMixin:
                 continue
             seen.add(key)
             output.append(text)
+        available = self._openrouter_model_available_providers(model)
+        if available:
+            available_keys = {_normalized_openrouter_provider_name(provider) for provider in available}
+            filtered = [provider for provider in output if _normalized_openrouter_provider_name(provider) in available_keys]
+            if filtered:
+                return filtered
+            if not isinstance(entry, dict):
+                # Policy fallback should not force a provider route that is unavailable for this model.
+                return []
         return output
 
     def _openrouter_known_provider_grammar_capability(self, provider: str) -> dict[str, Any] | None:
@@ -320,11 +458,30 @@ class OpenRouterCapabilityMixin:
         entry = providers.get(key)
         return entry if isinstance(entry, dict) else None
 
+    def _openrouter_model_available_providers(self, model: str | None = None) -> list[str]:
+        target_model = self.model if model is None else model
+        endpoints = self._openrouter_fetch_model_endpoints(target_model)
+        output: list[str] = []
+        seen: set[str] = set()
+        for endpoint in endpoints:
+            provider_name = str(endpoint.get("provider_name", "")).strip()
+            if not provider_name:
+                continue
+            provider_key = _normalized_openrouter_provider_name(provider_name)
+            if not provider_key or provider_key in seen:
+                continue
+            seen.add(provider_key)
+            output.append(provider_name)
+        return output
+
     def _openrouter_known_provider_grammar_supported(self, provider: str) -> bool | None:
         entry = self._openrouter_known_provider_grammar_capability(provider)
         if not isinstance(entry, dict):
             return None
         raw = entry.get("supports_grammar")
+        if isinstance(raw, bool):
+            return raw
+        raw = entry.get("supports_openrouter_grammar_response_format")
         if isinstance(raw, bool):
             return raw
         return None
@@ -334,6 +491,8 @@ class OpenRouterCapabilityMixin:
         if not isinstance(entry, dict):
             return None
         grammar_format = str(entry.get("recommended_format", "")).strip().lower()
+        if grammar_format not in ("ll-lark", "gbnf"):
+            grammar_format = str(entry.get("recommended_grammar_format", "")).strip().lower()
         if grammar_format in ("ll-lark", "gbnf"):
             return grammar_format
         return None

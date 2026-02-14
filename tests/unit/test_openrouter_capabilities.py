@@ -186,6 +186,29 @@ def test_openrouter_grammar_format_uses_capability_cache(monkeypatch):
     assert interpreter._openrouter_grammar_format_for_request(request_kwargs) == "ll-lark"
 
 
+def test_openrouter_grammar_format_uses_policy_schema(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "providers": {
+                "fireworks": {
+                    "provider_name": "Fireworks",
+                    "supports_openrouter_grammar_response_format": True,
+                    "recommended_grammar_format": "gbnf",
+                }
+            }
+        },
+    )
+    request_kwargs = {"extra_body": {"provider": {"order": ["Fireworks"], "require_parameters": True}}}
+    assert interpreter._openrouter_grammar_format_for_request(request_kwargs) == "gbnf"
+
+
 def test_openrouter_constraint_defaults_set_known_provider_order(monkeypatch):
     interpreter = _openai_base.BaseOpenAIInterpreter(
         model="z-ai/glm-5",
@@ -208,6 +231,72 @@ def test_openrouter_constraint_defaults_set_known_provider_order(monkeypatch):
     assert provider["require_parameters"] is True
     assert provider["allow_fallbacks"] is False
     assert provider["order"] == ["Fireworks", "Together"]
+
+
+def test_openrouter_constraint_defaults_use_ranked_provider_fallback(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "ranked_grammar_providers": ["Fireworks"],
+        },
+    )
+    updated = interpreter._openrouter_apply_constraint_routing_defaults({})
+    provider = updated["extra_body"]["provider"]
+    assert provider["require_parameters"] is True
+    assert provider["allow_fallbacks"] is False
+    assert provider["order"] == ["Fireworks"]
+
+
+def test_openrouter_constraint_defaults_filters_ranked_providers_by_model_endpoints(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "ranked_grammar_providers": ["Fireworks", "Together"],
+        },
+    )
+    monkeypatch.setattr(
+        interpreter,
+        "_openrouter_fetch_model_endpoints",
+        lambda model: [{"provider_name": "Together"}],
+    )
+    updated = interpreter._openrouter_apply_constraint_routing_defaults({})
+    provider = updated["extra_body"]["provider"]
+    assert provider["order"] == ["Together"]
+
+
+def test_openrouter_constraint_defaults_does_not_force_unavailable_ranked_provider(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "ranked_grammar_providers": ["Fireworks"],
+        },
+    )
+    monkeypatch.setattr(
+        interpreter,
+        "_openrouter_fetch_model_endpoints",
+        lambda model: [{"provider_name": "Together"}],
+    )
+    updated = interpreter._openrouter_apply_constraint_routing_defaults({})
+    provider = updated["extra_body"]["provider"]
+    assert "order" not in provider
 
 
 def test_openrouter_constraint_defaults_preserve_explicit_provider_order(monkeypatch):
@@ -248,6 +337,29 @@ def test_openrouter_grammar_support_gate_respects_known_unsupported_provider(mon
                     "provider_name": "Friendli",
                     "supports_grammar": False,
                     "recommended_format": None,
+                }
+            }
+        },
+    )
+    request_kwargs = {"extra_body": {"provider": {"order": ["Friendli"], "require_parameters": True}}}
+    assert interpreter._openrouter_supports_grammar_response_format(request_kwargs) is False
+
+
+def test_openrouter_grammar_support_gate_respects_policy_schema(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "providers": {
+                "friendli": {
+                    "provider_name": "Friendli",
+                    "supports_openrouter_grammar_response_format": False,
+                    "recommended_grammar_format": None,
                 }
             }
         },

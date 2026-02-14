@@ -5,7 +5,7 @@
 ## Metadata
 
 - Status: current
-- Last updated: 2026-02-13
+- Last updated: 2026-02-14
 - Scope: runtime capability detection and request shaping for OpenRouter paths
 
 Related docs:
@@ -67,10 +67,19 @@ Related docs:
   - initial provider hint: `Fireworks -> GBNF`.
 - Provider grammar capability cache:
   - shipped file: `guidance/resources/openrouter_provider_grammar_capabilities.json`
+  - shipped provider policy overlay: `guidance/resources/openrouter_provider_grammar_policy.json`
   - generated/updated via discovery script:
     - `scripts/openrouter_provider_grammar_discovery.py`
+  - policy build script (from provider-doc matrix):
+    - `scripts/build_openrouter_provider_grammar_policy.py`
   - when cache has model-supported providers, constrained OpenRouter grammar calls now prefer those providers.
+  - when model-specific cache data is missing, constrained grammar calls fall back to ranked providers from the
+    shipped policy.
+  - ranked fallback providers are intersected with the model's available OpenRouter endpoints before setting
+    `provider.order`, to avoid forcing unavailable providers.
   - cache also contributes provider-specific format hints (`ll-lark` vs `gbnf`) when available.
+  - policy entries provide a hard denylist for providers documented as not supporting
+    `response_format.type="grammar"` on OpenRouter.
 - This path is gated on OpenRouter metadata indicating `response_format` support for the current provider routing.
 - Output is validated locally against the original `guidance` grammar after generation:
   - provider rejection raises a grammar-specific error,
@@ -99,6 +108,10 @@ dotenv python scripts/openrouter_provider_grammar_discovery.py \
   --formats ll-lark,gbnf \
   --output-json guidance/resources/openrouter_provider_grammar_capabilities.json \
   --output-markdown docs/openrouter-provider-grammar-capabilities.md
+
+python scripts/build_openrouter_provider_grammar_policy.py \
+  --matrix docs/provider-grammar-research-matrix.json \
+  --output guidance/resources/openrouter_provider_grammar_policy.json
 ```
 
 ## Current Limits

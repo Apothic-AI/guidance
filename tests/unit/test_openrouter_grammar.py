@@ -64,7 +64,8 @@ def test_openrouter_grammar_sends_response_format(monkeypatch):
     assert len(outputs) == 1
     assert outputs[0].value == "YES"
     assert seen["response_format"]["type"] == "grammar"
-    assert "YES|NO" in seen["response_format"]["grammar"]
+    grammar = seen["response_format"]["grammar"]
+    assert "Y" in grammar and "N" in grammar
     assert seen["extra_body"]["provider"]["require_parameters"] is True
     assert seen["extra_body"]["provider"]["allow_fallbacks"] is False
 

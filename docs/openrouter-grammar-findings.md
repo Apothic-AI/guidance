@@ -5,7 +5,7 @@ This document records what we have verified about OpenRouter grammar support, an
 ## Metadata
 
 - Status: current
-- Last updated: 2026-02-13
+- Last updated: 2026-02-14
 - Scope: OpenRouter grammar behavior, probe outcomes, and follow-up risks
 
 Related docs:
@@ -159,6 +159,21 @@ Discovery uses OpenRouter provider routing controls (`provider.order`, `allow_fa
 - `accepts+ignores`
 
 Runtime now uses this cache for provider preference and serializer hints where evidence exists.
+
+### Provider Policy Overlay
+
+We now also ship a provider-doc-derived policy file:
+
+- `guidance/resources/openrouter_provider_grammar_policy.json`
+- generated from:
+  - `docs/provider-grammar-research-matrix.json`
+  - via `scripts/build_openrouter_provider_grammar_policy.py`
+
+Runtime merges this policy with the live probe cache:
+
+- model-specific `models_summary` hints come from live probes,
+- provider support/format/priority defaults come from policy (with live-probe positive support able to upgrade),
+- ranked policy providers are used as fallback routing defaults when model-specific provider hints are unavailable.
 
 ### Raw Output Validation Pass
 

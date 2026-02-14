@@ -1,0 +1,392 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-02-14T07:52:57.954008+00:00",
+  "matrix_source_path": "docs/provider-grammar-research-matrix.json",
+  "policy_scope": "openrouter_grammar_response_format",
+  "providers": {
+    "alibaba": {
+      "provider_name": "Alibaba",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.json_object|json_schema",
+      "streaming_fields_summary": "choices[].delta.content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/alibaba.md",
+      "source_urls": [
+        "https://www.alibabacloud.com/help/en/model-studio/qwen-api-reference/",
+        "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions",
+        "https://www.alibabacloud.com/help/en/model-studio/qwen-structured-output"
+      ]
+    },
+    "amazon bedrock": {
+      "provider_name": "Amazon Bedrock",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_plus_provider_specific",
+      "grammar_dialect": "provider_specific_cmi",
+      "request_shape_summary": "outputConfig.textFormat / structured_outputs (CMI)",
+      "streaming_fields_summary": "contentBlockDelta.text|reasoningContent (ConverseStream)",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/amazon-bedrock.md",
+      "source_urls": [
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ContentBlockDelta.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_JsonSchemaDefinition.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_MessageStopEvent.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_OutputConfig.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_OutputFormat.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_OutputFormatStructure.html",
+        "https://docs.aws.amazon.com/bedrock/latest/userguide/custom-model-import-advanced-features.html",
+        "https://docs.aws.amazon.com/bedrock/latest/userguide/structured-output.html"
+      ]
+    },
+    "atlascloud": {
+      "provider_name": "AtlasCloud",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "none_documented",
+      "grammar_dialect": "none",
+      "request_shape_summary": "no documented response_format grammar fields",
+      "streaming_fields_summary": "SSE deltas documented, schema unspecified",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/atlascloud.md",
+      "source_urls": [
+        "https://docs.atlascloud.ai/playground/",
+        "https://www.atlascloud.ai/docs/createChatCompletion",
+        "https://www.atlascloud.ai/docs/models/llm"
+      ]
+    },
+    "chutes": {
+      "provider_name": "Chutes",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "regex_plus_json_guided",
+      "grammar_dialect": "none_documented_cfg",
+      "request_shape_summary": "guided_json (vLLM), regex in SGLang",
+      "streaming_fields_summary": "choices[].delta.content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/chutes.md",
+      "source_urls": [
+        "https://chutes.ai/docs/examples/llm-chat",
+        "https://chutes.ai/docs/integrations/vercel-ai-sdk",
+        "https://chutes.ai/docs/templates/sglang",
+        "https://chutes.ai/docs/templates/vllm"
+      ]
+    },
+    "deepinfra": {
+      "provider_name": "DeepInfra",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.json_object|json_schema",
+      "streaming_fields_summary": "choices[].delta.content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/deepinfra.md",
+      "source_urls": [
+        "https://deepinfra.com/blog/json-mode",
+        "https://deepinfra.com/deepseek-ai/DeepSeek-V3.1/api",
+        "https://deepinfra.com/docs/advanced/json_mode",
+        "https://deepinfra.com/docs/openai_api"
+      ]
+    },
+    "fireworks": {
+      "provider_name": "Fireworks",
+      "supports_openrouter_grammar_response_format": true,
+      "recommended_grammar_format": "gbnf",
+      "priority": 100,
+      "support_level": "grammar_string",
+      "grammar_dialect": "gbnf",
+      "request_shape_summary": "response_format={type:\"grammar\",grammar:\"...\"}",
+      "streaming_fields_summary": "choices[].delta.content (and reasoning_content seen in practice)",
+      "support_reason": "Provider docs indicate explicit grammar-string constrained decoding support.",
+      "source_report": "docs/provider-grammar-research/fireworks.md",
+      "source_urls": [
+        "https://api.fireworks.ai/inference/v1`",
+        "https://docs.fireworks.ai/api-reference/post-chatcompletions",
+        "https://docs.fireworks.ai/structured-responses/structured-output-grammar-based",
+        "https://docs.fireworks.ai/structured-responses/structured-response-formatting",
+        "https://docs.fireworks.ai/tools-sdks/python-client/api-reference"
+      ]
+    },
+    "friendli": {
+      "provider_name": "Friendli",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "regex_plus_json_schema",
+      "grammar_dialect": "regex",
+      "request_shape_summary": "response_format.type=json_schema|json_object|regex",
+      "streaming_fields_summary": "choices[].delta.content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/friendli.md",
+      "source_urls": [
+        "https://friendli.ai/docs/guides/structured-outputs",
+        "https://friendli.ai/docs/openapi/dedicated/inference/chat-completions",
+        "https://friendli.ai/docs/openapi/dedicated/inference/chat-completions-chunk-object",
+        "https://friendli.ai/docs/openapi/serverless/chat-completions",
+        "https://friendli.ai/docs/openapi/serverless/tool-assisted-chat-completions-chunk-object"
+      ]
+    },
+    "gmicloud": {
+      "provider_name": "GMICloud",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_object_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.type=json_object",
+      "streaming_fields_summary": "usage in final stream chunk",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/gmicloud.md",
+      "source_urls": [
+        "https://api.gmi-serving.com/v1/chat/completions`",
+        "https://docs.gmicloud.ai/inference-engine/api-reference/llm-api-reference",
+        "https://docs.gmicloud.ai/inference-engine/ie-intro"
+      ]
+    },
+    "google": {
+      "provider_name": "Google",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "generationConfig.responseSchema/responseJsonSchema",
+      "streaming_fields_summary": "candidates[].content.parts[].text",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/google.md",
+      "source_urls": [
+        "https://ai.google.dev/api/generate-content#v1beta.CitationMetadata",
+        "https://ai.google.dev/gemini-api/docs/structured-output"
+      ]
+    },
+    "hyperbolic": {
+      "provider_name": "Hyperbolic",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "none_documented",
+      "grammar_dialect": "none",
+      "request_shape_summary": "no documented constrained-decoding request fields",
+      "streaming_fields_summary": "choices[].delta.content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/hyperbolic.md",
+      "source_urls": [
+        "https://api.hyperbolic.xyz/v1`",
+        "https://docs.hyperbolic.xyz/docs/inference-api",
+        "https://docs.hyperbolic.xyz/docs/rest-api",
+        "https://docs.hyperbolic.xyz/docs/serverless-inference"
+      ]
+    },
+    "nebius": {
+      "provider_name": "Nebius",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format json_object/json_schema (doc inconsistency)",
+      "streaming_fields_summary": "SSE + [DONE], chunk schema sparse",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/nebius.md",
+      "source_urls": [
+        "https://api.tokenfactory.nebius.com/v1`",
+        "https://docs.tokenfactory.nebius.com/ai-models-inference/json",
+        "https://docs.tokenfactory.nebius.com/ai-models-inference/overview",
+        "https://docs.tokenfactory.nebius.com/api-reference/examples/list-of-models",
+        "https://docs.tokenfactory.nebius.com/api-reference/inference/create-chat-completion",
+        "https://docs.tokenfactory.nebius.com/api-reference/models/list-models"
+      ]
+    },
+    "nextbit": {
+      "provider_name": "NextBit",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_via_openrouter",
+      "grammar_dialect": "none",
+      "request_shape_summary": "OpenRouter response_format json_object/json_schema",
+      "streaming_fields_summary": "choices[].delta.content, finish_reason, usage",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/nextbit.md",
+      "source_urls": [
+        "https://openrouter.ai/docs/api-reference/list-available-models",
+        "https://openrouter.ai/docs/api/reference/parameters",
+        "https://openrouter.ai/docs/api/reference/streaming",
+        "https://openrouter.ai/docs/guides/features/structured-outputs",
+        "https://openrouter.ai/docs/guides/routing/provider-selection",
+        "https://openrouter.ai/provider/nextbit"
+      ]
+    },
+    "novita": {
+      "provider_name": "Novita",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.type=json_schema|json_object",
+      "streaming_fields_summary": "SSE + [DONE]",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/novita.md",
+      "source_urls": [
+        "https://api.novita.ai/openai/v1/chat/completions`",
+        "https://novita.ai/docs/api-reference/model-apis-llm-create-chat-completion",
+        "https://novita.ai/docs/guides/llm-playgrounds",
+        "https://novita.ai/docs/guides/llm-structured-outputs"
+      ]
+    },
+    "parasail": {
+      "provider_name": "Parasail",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "regex_plus_json_schema",
+      "grammar_dialect": "regex",
+      "request_shape_summary": "structured_output (json schema or regex), guided_json",
+      "streaming_fields_summary": "OpenAI-compatible deltas",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/parasail.md",
+      "source_urls": [
+        "https://api.parasail.ai/v1`",
+        "https://api.parasail.io/v1`",
+        "https://docs.parasail.io/parasail-docs/batch/api-reference",
+        "https://docs.parasail.io/parasail-docs/cookbooks/structured-output",
+        "https://docs.parasail.io/parasail-docs/serverless-and-models/available-parameters",
+        "https://docs.parasail.io/parasail-docs/serverless-and-models/serverless",
+        "https://docs.vllm.ai/en/v0.6.6.post1/usage/structured_outputs.html",
+        "https://docs.vllm.ai/en/v0.9.0/api/vllm/model_executor/guided_decoding/guided_fields.html",
+        "https://platform.openai.com/docs/api-reference/chat/create-chat-completion"
+      ]
+    },
+    "phala": {
+      "provider_name": "Phala",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.type=json_schema",
+      "streaming_fields_summary": "choices[].delta.content + [DONE]",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/phala.md",
+      "source_urls": [
+        "https://api.redpill.ai/v1/chat/completions`",
+        "https://docs.phala.com/phala-cloud/confidential-ai/confidential-model/confidential-ai-api",
+        "https://docs.phala.com/phala-cloud/confidential-ai/confidential-model/streaming",
+        "https://docs.phala.com/phala-cloud/confidential-ai/confidential-model/structured-output",
+        "https://docs.redpill.ai/developers/api-reference/chat-completions",
+        "https://docs.redpill.ai/developers/guides/streaming"
+      ]
+    },
+    "siliconflow": {
+      "provider_name": "SiliconFlow",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_object_plus_tool_schema",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.json_object and tools[].function.strict",
+      "streaming_fields_summary": "delta.content + delta.reasoning_content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/siliconflow.md",
+      "source_urls": [
+        "https://api.siliconflow.cn/v1`,",
+        "https://docs.siliconflow.cn/en/api-reference/chat-completions/chat-completions",
+        "https://docs.siliconflow.cn/en/api-reference/chat-completions/chat-completions.md",
+        "https://docs.siliconflow.cn/en/userguide/guides/json-mode",
+        "https://docs.siliconflow.cn/en/userguide/guides/json-mode.md",
+        "https://docs.siliconflow.cn/llms-full.txt",
+        "https://docs.siliconflow.cn/llms.txt"
+      ]
+    },
+    "together": {
+      "provider_name": "Together",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "regex_plus_json_schema",
+      "grammar_dialect": "regex",
+      "request_shape_summary": "response_format.type=json_schema|regex",
+      "streaming_fields_summary": "delta.content (+ reasoning for some models)",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/together.md",
+      "source_urls": [
+        "https://api.together.xyz/v1`,",
+        "https://docs.together.ai/docs/chat-overview",
+        "https://docs.together.ai/docs/json-mode",
+        "https://docs.together.ai/docs/kimi-k2-thinking-quickstart",
+        "https://docs.together.ai/docs/openai-api-compatibility",
+        "https://docs.together.ai/reference/"
+      ]
+    },
+    "venice": {
+      "provider_name": "Venice",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.type=json_schema",
+      "streaming_fields_summary": "delta.content (chat), typed SSE events in /responses",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/venice.md",
+      "source_urls": [
+        "https://api.venice.ai/doc/api/swagger.yaml",
+        "https://docs.venice.ai/api-reference/endpoint/chat/completions",
+        "https://docs.venice.ai/guides/streaming",
+        "https://docs.venice.ai/guides/structured-responses"
+      ]
+    },
+    "wandb": {
+      "provider_name": "WandB",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_schema_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.type=json_schema",
+      "streaming_fields_summary": "chunk.choices[0].delta.content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/wandb.md",
+      "source_urls": [
+        "https://api.inference.wandb.ai/v1`",
+        "https://docs.wandb.ai/inference",
+        "https://docs.wandb.ai/inference/api-reference",
+        "https://docs.wandb.ai/inference/api-reference/chat-completions",
+        "https://docs.wandb.ai/inference/response-settings/streaming",
+        "https://docs.wandb.ai/inference/response-settings/structured-output",
+        "https://docs.wandb.ai/training/api-reference/chat-completions/create-chat-completion-1"
+      ]
+    },
+    "z.ai": {
+      "provider_name": "Z.AI",
+      "supports_openrouter_grammar_response_format": false,
+      "recommended_grammar_format": null,
+      "priority": 0,
+      "support_level": "json_object_only",
+      "grammar_dialect": "none",
+      "request_shape_summary": "response_format.type=json_object",
+      "streaming_fields_summary": "delta.content + delta.reasoning_content",
+      "support_reason": "Provider docs do not indicate OpenRouter-compatible grammar-string constrained decoding (response_format.type='grammar').",
+      "source_report": "docs/provider-grammar-research/z-ai.md",
+      "source_urls": [
+        "https://docs.z.ai/api-reference/llm/chat-completion",
+        "https://docs.z.ai/guides/capabilities/streaming",
+        "https://docs.z.ai/guides/capabilities/struct-output"
+      ]
+    }
+  },
+  "ranked_grammar_providers": [
+    "Fireworks"
+  ]
+}

@@ -3,7 +3,7 @@
 ## Metadata
 
 - Status: current
-- Last updated: 2026-02-13
+- Last updated: 2026-02-14
 - Audience: contributors implementing provider-native constrained generation
 
 ## Scope
@@ -203,7 +203,29 @@ Follow-up correction:
 - A raw payload validation pass showed some providers return HTTP 200 with an in-body `error` object.
 - Discovery/probe classifiers were updated to treat those responses as `reject`.
 - Raw capture artifact:
-  - `docs/openrouter-provider-grammar-raw-outputs.json`
+- `docs/openrouter-provider-grammar-raw-outputs.json`
+
+### 11. OpenRouter Provider Policy Build + Runtime Merge (2026-02-14)
+
+Implemented a provider-policy build and runtime merge architecture:
+
+- policy build script:
+  - `scripts/build_openrouter_provider_grammar_policy.py`
+- shipped policy output:
+  - `guidance/resources/openrouter_provider_grammar_policy.json`
+
+Runtime behavior:
+
+- `guidance/models/_openrouter_capabilities.py` now merges:
+  - live probe cache (`openrouter_provider_grammar_capabilities.json`),
+  - provider-doc policy (`openrouter_provider_grammar_policy.json`).
+- model-specific provider hints still come from probe `models_summary`.
+- when model-specific hints are missing, constrained grammar calls fall back to policy-ranked providers.
+- policy-ranked fallback is filtered by model endpoint availability before setting `provider.order`.
+- provider format selection (`ll-lark` vs `gbnf`) now accepts either schema:
+  - legacy (`recommended_format`),
+  - policy (`recommended_grammar_format`).
+- explicit known-unsupported providers are fail-closed for grammar calls.
 
 ## Live Testing Outcomes (So Far)
 

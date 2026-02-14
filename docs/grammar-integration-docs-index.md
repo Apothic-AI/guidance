@@ -5,7 +5,7 @@ This index organizes the current Markdown documentation for grammar/constrained-
 ## Metadata
 
 - Status: current
-- Last updated: 2026-02-13
+- Last updated: 2026-02-14
 - Maintainer scope: OpenAI/Fireworks/OpenRouter grammar integration docs
 
 ## Current Canonical Docs
@@ -38,14 +38,20 @@ This index organizes the current Markdown documentation for grammar/constrained-
 4. `guidance/resources/openrouter_provider_grammar_capabilities.json`
    - Shipped machine-readable provider grammar capability cache used at runtime.
 
-5. `docs/openrouter-provider-grammar-raw-outputs.json`
+5. `guidance/resources/openrouter_provider_grammar_policy.json`
+   - Shipped provider-doc-derived grammar policy overlay (priority, format, denylist).
+
+6. `docs/openrouter-provider-grammar-raw-outputs.json`
    - Raw non-stream and stream payload captures used to validate provider classification.
 
-6. `docs/provider-grammar-research-matrix.md`
+7. `docs/provider-grammar-research-matrix.md`
    - Consolidated provider-docs compatibility matrix (support level, dialect, request shape, streaming fields).
 
-7. `docs/provider-grammar-research-matrix.json`
+8. `docs/provider-grammar-research-matrix.json`
    - Machine-readable version of the provider-docs matrix.
+
+9. `scripts/build_openrouter_provider_grammar_policy.py`
+   - Builds runtime provider policy JSON from the provider-doc matrix.
 
 ## Plan / Historical Docs
 
