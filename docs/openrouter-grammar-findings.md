@@ -33,6 +33,7 @@ References:
 - https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request.md
 - https://openrouter.ai/openapi.json
 - https://openrouter.ai/docs/guides/features/structured-outputs.md
+- https://openrouter.ai/docs/guides/routing/provider-selection.md
 - https://docs.fireworks.ai/structured-responses/structured-response-formatting.md
 - https://docs.fireworks.ai/structured-responses/structured-output-grammar-based.md
 
@@ -139,6 +140,42 @@ These defaults are applied only for constrained grammar calls and preserve expli
 2. Maintain a known-good model/provider/format matrix and use it for safer auto-routing defaults.
 3. Add adaptive retries/fallback policy (while staying fail-closed) for transient provider errors (429/5xx).
 4. Validate whether OpenRouter Fireworks-backed streams expose text via `reasoning_content` and update parser logic if needed.
+
+## Provider Capability Cache (2026-02-14)
+
+We now maintain a shipped provider grammar capability cache:
+
+- cache JSON: `guidance/resources/openrouter_provider_grammar_capabilities.json`
+- generation script:
+  - `scripts/openrouter_provider_grammar_discovery.py`
+- human-readable report:
+  - `docs/openrouter-provider-grammar-capabilities.md`
+
+Discovery uses OpenRouter provider routing controls (`provider.order`, `allow_fallbacks=false`,
+`require_parameters=true`) to probe model/provider pairs and records:
+
+- `reject`
+- `accepts+obeys`
+- `accepts+ignores`
+
+Runtime now uses this cache for provider preference and serializer hints where evidence exists.
+
+### Raw Output Validation Pass
+
+We also captured raw non-stream and stream SSE payloads for providers that initially looked like
+`accepts+ignores`:
+
+- `docs/openrouter-provider-grammar-raw-outputs.json`
+
+Findings:
+
+- Some routes returned HTTP 200 with an in-body `error` object (for example Alibaba, NextBit).
+  - These are now classified as `reject`.
+- Google route still returned a normal 200 completion object but with empty output:
+  - `completion_tokens: 0`
+  - empty `message.content`
+  - stream emitted empty `delta.content` then `[DONE]`
+  - currently classified as `accepts+ignores`.
 
 ## Test Environment Notes
 

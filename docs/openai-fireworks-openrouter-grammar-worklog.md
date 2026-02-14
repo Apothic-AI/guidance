@@ -152,6 +152,39 @@ Related doc:
 
 - `docs/fireworks-sdk-grammar-investigation.md`
 
+### 9. OpenRouter provider grammar capability cache (2026-02-14)
+
+Implemented new discovery pipeline and shipped runtime cache:
+
+- discovery script:
+  - `scripts/openrouter_provider_grammar_discovery.py`
+- report output:
+  - `docs/openrouter-provider-grammar-capabilities.md`
+- shipped cache:
+  - `guidance/resources/openrouter_provider_grammar_capabilities.json`
+
+The discovery script consumes model list from:
+
+- `OPENROUTER_FEATURE_TEST_MODELS` (comma-separated)
+
+and probes provider routes using strict provider selection settings from OpenRouter routing docs:
+
+- `provider.order`
+- `allow_fallbacks=false`
+- `require_parameters=true`
+
+Runtime integration:
+
+- cache-informed provider preference for constrained grammar calls (when no explicit provider route is set),
+- cache-informed provider grammar format selection (`ll-lark` vs `gbnf`) when available.
+
+Follow-up correction:
+
+- A raw payload validation pass showed some providers return HTTP 200 with an in-body `error` object.
+- Discovery/probe classifiers were updated to treat those responses as `reject`.
+- Raw capture artifact:
+  - `docs/openrouter-provider-grammar-raw-outputs.json`
+
 ## Live Testing Outcomes (So Far)
 
 ### Fireworks

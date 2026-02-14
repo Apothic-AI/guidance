@@ -20,6 +20,9 @@ This index organizes the current Markdown documentation for grammar/constrained-
 3. `docs/openrouter-grammar-findings.md`
    - OpenRouter grammar-specific findings, probe summaries, and known variability.
 
+4. `docs/openrouter-provider-grammar-capabilities.md`
+   - Latest provider capability discovery summary generated from low-cost model probes.
+
 ## Supporting Artifacts
 
 1. `docs/openrouter-grammar-probe-matrix.md`
@@ -31,6 +34,12 @@ This index organizes the current Markdown documentation for grammar/constrained-
 3. `docs/fireworks-sdk-grammar-investigation.md`
    - Fireworks SDK + live stream behavior findings for grammar mode.
    - Documents `reasoning_content` nuance and OpenRouter applicability.
+
+4. `guidance/resources/openrouter_provider_grammar_capabilities.json`
+   - Shipped machine-readable provider grammar capability cache used at runtime.
+
+5. `docs/openrouter-provider-grammar-raw-outputs.json`
+   - Raw non-stream and stream payload captures used to validate provider classification.
 
 ## Plan / Historical Docs
 

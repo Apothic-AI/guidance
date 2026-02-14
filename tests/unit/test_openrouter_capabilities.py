@@ -163,6 +163,112 @@ def test_openrouter_grammar_format_uses_provider_hint():
     assert interpreter._openrouter_grammar_format_for_request(request_kwargs) == "gbnf"
 
 
+def test_openrouter_grammar_format_uses_capability_cache(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "providers": {
+                "friendli": {
+                    "provider_name": "Friendli",
+                    "supports_grammar": True,
+                    "recommended_format": "ll-lark",
+                }
+            }
+        },
+    )
+    request_kwargs = {"extra_body": {"provider": {"order": ["Friendli"], "require_parameters": True}}}
+    assert interpreter._openrouter_grammar_format_for_request(request_kwargs) == "ll-lark"
+
+
+def test_openrouter_constraint_defaults_set_known_provider_order(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "models_summary": {
+                "z-ai/glm-5": {
+                    "supported_providers": ["Fireworks", "Together"],
+                }
+            }
+        },
+    )
+    updated = interpreter._openrouter_apply_constraint_routing_defaults({})
+    provider = updated["extra_body"]["provider"]
+    assert provider["require_parameters"] is True
+    assert provider["allow_fallbacks"] is False
+    assert provider["order"] == ["Fireworks", "Together"]
+
+
+def test_openrouter_constraint_defaults_preserve_explicit_provider_order(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "models_summary": {
+                "z-ai/glm-5": {
+                    "supported_providers": ["Fireworks"],
+                }
+            }
+        },
+    )
+    updated = interpreter._openrouter_apply_constraint_routing_defaults(
+        {"extra_body": {"provider": {"order": ["Friendli"]}}}
+    )
+    assert updated["extra_body"]["provider"]["order"] == ["Friendli"]
+
+
+def test_openrouter_grammar_support_gate_respects_known_unsupported_provider(monkeypatch):
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    monkeypatch.setattr(
+        _openrouter_capabilities,
+        "load_openrouter_provider_grammar_capabilities",
+        lambda: {
+            "providers": {
+                "friendli": {
+                    "provider_name": "Friendli",
+                    "supports_grammar": False,
+                    "recommended_format": None,
+                }
+            }
+        },
+    )
+    request_kwargs = {"extra_body": {"provider": {"order": ["Friendli"], "require_parameters": True}}}
+    assert interpreter._openrouter_supports_grammar_response_format(request_kwargs) is False
+
+
+def test_openrouter_provider_settings_supports_only_routing_field():
+    interpreter = _openai_base.BaseOpenAIInterpreter(
+        model="z-ai/glm-5",
+        client=_DummyClientWrapper(),
+        reasoning_effort=None,
+    )
+    order, require_parameters = interpreter._openrouter_provider_settings(
+        {"extra_body": {"provider": {"only": ["Fireworks"], "require_parameters": True}}}
+    )
+    assert order == ["fireworks"]
+    assert require_parameters is True
+
+
 @pytest.mark.parametrize(
     ("supports", "enable_logprobs", "top_logprobs", "expected_mode", "expected_top_logprobs"),
     [

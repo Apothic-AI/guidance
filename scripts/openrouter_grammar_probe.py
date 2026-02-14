@@ -155,6 +155,23 @@ def _classify_outcome(status_code: int, generated_text: str | None) -> tuple[str
     return "accepts+ignores", "provider accepted request but returned empty/non-text output"
 
 
+def _extract_error_message(payload: dict[str, Any] | None) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+    err = payload.get("error")
+    if isinstance(err, str):
+        text = err.strip()
+        return text or None
+    if isinstance(err, dict):
+        message = err.get("message")
+        if isinstance(message, str) and message.strip():
+            return message.strip()
+        code = err.get("code")
+        if code is not None:
+            return f"provider returned error code {code}"
+    return None
+
+
 def probe_provider(
     *,
     api_base: str,
@@ -187,6 +204,16 @@ def probe_provider(
         payload=payload,
         timeout_seconds=timeout_seconds,
     )
+    error_message = _extract_error_message(parsed)
+    if error_message:
+        return ProbeResult(
+            provider=provider,
+            grammar_format=grammar_format,
+            outcome="reject",
+            status_code=status if status > 0 else None,
+            generated_text=None,
+            detail=f"provider rejected grammar request: {error_message}",
+        )
     generated = _extract_content_text(parsed)
     outcome, detail = _classify_outcome(status, generated)
     if outcome == "reject":

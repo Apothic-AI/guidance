@@ -1,0 +1,230 @@
+{
+  "generated_at": "2026-02-14T05:10:32.538954+00:00",
+  "api_base": "https://openrouter.ai/api/v1",
+  "cases": [
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Alibaba",
+      "formats": {
+        "ll-lark": {
+          "non_stream": {
+            "status": 200,
+            "raw": "\n         \n\n         \n{\"error\":{\"message\":\"Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'.\",\"code\":502,\"metadata\":{\"provider_name\":\"Alibaba\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}",
+            "parsed": {
+              "error": {
+                "message": "Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'.",
+                "code": 502,
+                "metadata": {
+                  "provider_name": "Alibaba"
+                }
+              },
+              "user_id": "user_2xffElx66ulwQcYTZ2h8xe3SOH3"
+            }
+          },
+          "stream": {
+            "status": 200,
+            "sse_lines": [
+              ": OPENROUTER PROCESSING",
+              "data: {\"error\":{\"message\":\"Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'.\",\"code\":502,\"metadata\":{\"provider_name\":\"Alibaba\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}"
+            ]
+          }
+        },
+        "gbnf": {
+          "non_stream": {
+            "status": 200,
+            "raw": "\n         \n{\"error\":{\"message\":\"Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'.\",\"code\":502,\"metadata\":{\"provider_name\":\"Alibaba\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}",
+            "parsed": {
+              "error": {
+                "message": "Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'.",
+                "code": 502,
+                "metadata": {
+                  "provider_name": "Alibaba"
+                }
+              },
+              "user_id": "user_2xffElx66ulwQcYTZ2h8xe3SOH3"
+            }
+          },
+          "stream": {
+            "status": 200,
+            "sse_lines": [
+              ": OPENROUTER PROCESSING",
+              ": OPENROUTER PROCESSING",
+              ": OPENROUTER PROCESSING",
+              "data: {\"error\":{\"message\":\"Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'.\",\"code\":502,\"metadata\":{\"provider_name\":\"Alibaba\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Google",
+      "formats": {
+        "ll-lark": {
+          "non_stream": {
+            "status": 200,
+            "raw": "{\"id\":\"gen-1771045839-4Txav7GQTrPP84Z3tWUZ\",\"provider\":\"Google\",\"model\":\"qwen/qwen3-coder\",\"object\":\"chat.completion\",\"created\":1771045839,\"choices\":[{\"logprobs\":null,\"finish_reason\":null,\"native_finish_reason\":null,\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\",\"refusal\":null,\"reasoning\":null}}],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":0,\"total_tokens\":12,\"cost\":0,\"is_byok\":false,\"prompt_tokens_details\":{\"cached_tokens\":0,\"audio_tokens\":0},\"cost_details\":{\"upstream_inference_cost\":0.00000264,\"upstream_inference_prompt_cost\":0.00000264,\"upstream_inference_completions_cost\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"audio_tokens\":0}}}",
+            "parsed": {
+              "id": "gen-1771045839-4Txav7GQTrPP84Z3tWUZ",
+              "provider": "Google",
+              "model": "qwen/qwen3-coder",
+              "object": "chat.completion",
+              "created": 1771045839,
+              "choices": [
+                {
+                  "logprobs": null,
+                  "finish_reason": null,
+                  "native_finish_reason": null,
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "refusal": null,
+                    "reasoning": null
+                  }
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 12,
+                "completion_tokens": 0,
+                "total_tokens": 12,
+                "cost": 0,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "audio_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 2.64e-06,
+                  "upstream_inference_prompt_cost": 2.64e-06,
+                  "upstream_inference_completions_cost": 0
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          },
+          "stream": {
+            "status": 200,
+            "sse_lines": [
+              "data: {\"id\":\"gen-1771045840-PM8czTrS6VGiUMQBCt2H\",\"provider\":\"Google\",\"model\":\"qwen/qwen3-coder\",\"object\":\"chat.completion.chunk\",\"created\":1771045840,\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null,\"native_finish_reason\":null,\"logprobs\":null}],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":0,\"total_tokens\":12,\"cost\":0,\"is_byok\":false,\"prompt_tokens_details\":{\"cached_tokens\":0,\"audio_tokens\":0},\"cost_details\":{\"upstream_inference_cost\":0.00000264,\"upstream_inference_prompt_cost\":0.00000264,\"upstream_inference_completions_cost\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"audio_tokens\":0}}}",
+              "data: [DONE]"
+            ]
+          }
+        },
+        "gbnf": {
+          "non_stream": {
+            "status": 200,
+            "raw": "{\"id\":\"gen-1771045840-W4cG0sLlF6qqom9MrYlS\",\"provider\":\"Google\",\"model\":\"qwen/qwen3-coder\",\"object\":\"chat.completion\",\"created\":1771045840,\"choices\":[{\"logprobs\":null,\"finish_reason\":null,\"native_finish_reason\":null,\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\",\"refusal\":null,\"reasoning\":null}}],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":0,\"total_tokens\":12,\"cost\":0,\"is_byok\":false,\"prompt_tokens_details\":{\"cached_tokens\":0,\"audio_tokens\":0},\"cost_details\":{\"upstream_inference_cost\":0.00000264,\"upstream_inference_prompt_cost\":0.00000264,\"upstream_inference_completions_cost\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"audio_tokens\":0}}}",
+            "parsed": {
+              "id": "gen-1771045840-W4cG0sLlF6qqom9MrYlS",
+              "provider": "Google",
+              "model": "qwen/qwen3-coder",
+              "object": "chat.completion",
+              "created": 1771045840,
+              "choices": [
+                {
+                  "logprobs": null,
+                  "finish_reason": null,
+                  "native_finish_reason": null,
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "refusal": null,
+                    "reasoning": null
+                  }
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 12,
+                "completion_tokens": 0,
+                "total_tokens": 12,
+                "cost": 0,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "audio_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 2.64e-06,
+                  "upstream_inference_prompt_cost": 2.64e-06,
+                  "upstream_inference_completions_cost": 0
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          },
+          "stream": {
+            "status": 200,
+            "sse_lines": [
+              "data: {\"id\":\"gen-1771045841-ti7QzQUh3TnMhVVW4WmU\",\"provider\":\"Google\",\"model\":\"qwen/qwen3-coder\",\"object\":\"chat.completion.chunk\",\"created\":1771045841,\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null,\"native_finish_reason\":null,\"logprobs\":null}],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":0,\"total_tokens\":12,\"cost\":0,\"is_byok\":false,\"prompt_tokens_details\":{\"cached_tokens\":0,\"audio_tokens\":0},\"cost_details\":{\"upstream_inference_cost\":0.00000264,\"upstream_inference_prompt_cost\":0.00000264,\"upstream_inference_completions_cost\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"audio_tokens\":0}}}",
+              "data: [DONE]"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "NextBit",
+      "formats": {
+        "ll-lark": {
+          "non_stream": {
+            "status": 200,
+            "raw": "\n         \n\n         \n{\"error\":{\"message\":\"JSON error injected into SSE stream\",\"code\":502,\"metadata\":{\"provider_name\":\"NextBit\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}",
+            "parsed": {
+              "error": {
+                "message": "JSON error injected into SSE stream",
+                "code": 502,
+                "metadata": {
+                  "provider_name": "NextBit"
+                }
+              },
+              "user_id": "user_2xffElx66ulwQcYTZ2h8xe3SOH3"
+            }
+          },
+          "stream": {
+            "status": 200,
+            "sse_lines": [
+              ": OPENROUTER PROCESSING",
+              ": OPENROUTER PROCESSING",
+              ": OPENROUTER PROCESSING",
+              "data: {\"error\":{\"message\":\"JSON error injected into SSE stream\",\"code\":502,\"metadata\":{\"provider_name\":\"NextBit\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}"
+            ]
+          }
+        },
+        "gbnf": {
+          "non_stream": {
+            "status": 200,
+            "raw": "\n         \n\n         \n\n         \n{\"error\":{\"message\":\"JSON error injected into SSE stream\",\"code\":502,\"metadata\":{\"provider_name\":\"NextBit\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}",
+            "parsed": {
+              "error": {
+                "message": "JSON error injected into SSE stream",
+                "code": 502,
+                "metadata": {
+                  "provider_name": "NextBit"
+                }
+              },
+              "user_id": "user_2xffElx66ulwQcYTZ2h8xe3SOH3"
+            }
+          },
+          "stream": {
+            "status": 200,
+            "sse_lines": [
+              ": OPENROUTER PROCESSING",
+              ": OPENROUTER PROCESSING",
+              ": OPENROUTER PROCESSING",
+              "data: {\"error\":{\"message\":\"JSON error injected into SSE stream\",\"code\":502,\"metadata\":{\"provider_name\":\"NextBit\"}},\"user_id\":\"user_2xffElx66ulwQcYTZ2h8xe3SOH3\"}"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

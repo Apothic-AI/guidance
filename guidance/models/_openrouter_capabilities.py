@@ -1,4 +1,5 @@
 import json
+import importlib.resources as importlib_resources
 import threading
 import time
 from typing import Any, Literal
@@ -16,6 +17,9 @@ _OPENROUTER_MODELS_CACHE: dict[tuple[str, str], tuple[float, dict[str, dict[str,
 _OPENROUTER_MODELS_CACHE_LOCK = threading.Lock()
 _DEFAULT_OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
 _OPENROUTER_TOP_LOGPROBS_SAFE_MAX = 20
+_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_FILENAME = "openrouter_provider_grammar_capabilities.json"
+_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE: dict[str, Any] | None = None
+_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_LOCK = threading.Lock()
 _OPENROUTER_PROVIDER_GRAMMAR_FORMAT_HINTS: dict[str, Literal["ll-lark", "gbnf"]] = {
     "fireworks": "gbnf",
 }
@@ -34,6 +38,10 @@ def _normalized_openrouter_api_base(raw_base: str | None) -> str:
 
 def _normalized_openrouter_model_name(model: str) -> str:
     return str(model).strip().strip("/").lower()
+
+
+def _normalized_openrouter_provider_name(provider: str) -> str:
+    return str(provider).strip().lower()
 
 
 def _openrouter_model_aliases(model: str) -> list[str]:
@@ -68,6 +76,30 @@ def _extract_openrouter_model_modalities(model_meta: dict[str, Any] | None) -> t
         return {str(item).strip().lower() for item in value if str(item).strip()}
 
     return _to_modalities(architecture.get("input_modalities")), _to_modalities(architecture.get("output_modalities"))
+
+
+def load_openrouter_provider_grammar_capabilities() -> dict[str, Any]:
+    global _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE
+    with _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_LOCK:
+        if _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE is not None:
+            return dict(_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE)
+
+    payload: dict[str, Any] = {}
+    try:
+        data_path = (
+            importlib_resources.files("guidance")
+            .joinpath("resources")
+            .joinpath(_OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_FILENAME)
+        )
+        parsed = json.loads(data_path.read_text(encoding="utf-8"))
+        if isinstance(parsed, dict):
+            payload = parsed
+    except Exception:  # noqa: BLE001
+        payload = {}
+
+    with _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_LOCK:
+        _OPENROUTER_PROVIDER_GRAMMAR_CAPABILITIES_CACHE = dict(payload)
+    return dict(payload)
 
 
 def fetch_openrouter_models_catalog(
@@ -244,6 +276,75 @@ class OpenRouterCapabilityMixin:
             _OPENROUTER_ENDPOINTS_CACHE[cache_key] = (now + ttl, list(endpoints))
         return endpoints
 
+    def _openrouter_grammar_capabilities_payload(self) -> dict[str, Any]:
+        return load_openrouter_provider_grammar_capabilities()
+
+    def _openrouter_known_grammar_model_entry(self, model: str | None = None) -> dict[str, Any] | None:
+        payload = self._openrouter_grammar_capabilities_payload()
+        model_summaries = payload.get("models_summary")
+        if not isinstance(model_summaries, dict):
+            return None
+        target_model = self.model if model is None else model
+        for alias in _openrouter_model_aliases(target_model):
+            entry = model_summaries.get(alias)
+            if isinstance(entry, dict):
+                return entry
+        return None
+
+    def _openrouter_known_supported_grammar_providers(self, model: str | None = None) -> list[str]:
+        entry = self._openrouter_known_grammar_model_entry(model)
+        if not isinstance(entry, dict):
+            return []
+        providers = entry.get("supported_providers")
+        if not isinstance(providers, list):
+            return []
+        seen: set[str] = set()
+        output: list[str] = []
+        for provider in providers:
+            text = str(provider).strip()
+            key = _normalized_openrouter_provider_name(text)
+            if not text or key in seen:
+                continue
+            seen.add(key)
+            output.append(text)
+        return output
+
+    def _openrouter_known_provider_grammar_capability(self, provider: str) -> dict[str, Any] | None:
+        payload = self._openrouter_grammar_capabilities_payload()
+        providers = payload.get("providers")
+        if not isinstance(providers, dict):
+            return None
+        key = _normalized_openrouter_provider_name(provider)
+        if not key:
+            return None
+        entry = providers.get(key)
+        return entry if isinstance(entry, dict) else None
+
+    def _openrouter_known_provider_grammar_supported(self, provider: str) -> bool | None:
+        entry = self._openrouter_known_provider_grammar_capability(provider)
+        if not isinstance(entry, dict):
+            return None
+        raw = entry.get("supports_grammar")
+        if isinstance(raw, bool):
+            return raw
+        return None
+
+    def _openrouter_known_provider_grammar_format(self, provider: str) -> Literal["ll-lark", "gbnf"] | None:
+        entry = self._openrouter_known_provider_grammar_capability(provider)
+        if not isinstance(entry, dict):
+            return None
+        grammar_format = str(entry.get("recommended_format", "")).strip().lower()
+        if grammar_format in ("ll-lark", "gbnf"):
+            return grammar_format
+        return None
+
+    def _openrouter_provider_has_explicit_route(self, provider_obj: dict[str, Any]) -> bool:
+        for field in ("order", "only", "ignore"):
+            raw = provider_obj.get(field)
+            if isinstance(raw, list) and any(str(item).strip() for item in raw):
+                return True
+        return False
+
     def _openrouter_provider_settings(self, request_kwargs: dict[str, Any]) -> tuple[list[str], bool]:
         extra = request_kwargs.get("extra_body")
         if not isinstance(extra, dict):
@@ -252,6 +353,9 @@ class OpenRouterCapabilityMixin:
         if not isinstance(provider, dict):
             return [], False
         order_raw = provider.get("order")
+        if not isinstance(order_raw, list):
+            # `only` is also a routing constraint in OpenRouter provider selection.
+            order_raw = provider.get("only")
         order: list[str] = []
         if isinstance(order_raw, list):
             for item in order_raw:
@@ -267,6 +371,7 @@ class OpenRouterCapabilityMixin:
         *,
         require_parameters: bool = True,
         allow_fallbacks: bool = False,
+        use_known_grammar_providers: bool = True,
     ) -> dict[str, Any]:
         """Bias constrained requests toward capability-compatible providers."""
         normalized = dict(request_kwargs)
@@ -277,6 +382,10 @@ class OpenRouterCapabilityMixin:
         provider_obj = dict(provider) if isinstance(provider, dict) else {}
         provider_obj.setdefault("require_parameters", bool(require_parameters))
         provider_obj.setdefault("allow_fallbacks", bool(allow_fallbacks))
+        if use_known_grammar_providers and not self._openrouter_provider_has_explicit_route(provider_obj):
+            known_supported = self._openrouter_known_supported_grammar_providers()
+            if known_supported:
+                provider_obj.setdefault("order", known_supported)
         extra_body["provider"] = provider_obj
         normalized["extra_body"] = extra_body
         return normalized
@@ -408,6 +517,15 @@ class OpenRouterCapabilityMixin:
         )
 
     def _openrouter_supports_grammar_response_format(self, request_kwargs: dict[str, Any]) -> bool:
+        provider_order, _ = self._openrouter_provider_settings(request_kwargs)
+        if provider_order:
+            known_support_flags = [
+                self._openrouter_known_provider_grammar_supported(provider)
+                for provider in provider_order
+            ]
+            known_support = [flag for flag in known_support_flags if flag is not None]
+            if known_support and not any(known_support):
+                return False
         # `structured_outputs` in model metadata implies JSON schema capability, not necessarily free-form grammar.
         return self._openrouter_parameter_supported_for_request(
             request_kwargs=request_kwargs,
@@ -418,6 +536,9 @@ class OpenRouterCapabilityMixin:
         provider_order, _ = self._openrouter_provider_settings(request_kwargs)
         if provider_order:
             first = provider_order[0].strip().lower()
+            known = self._openrouter_known_provider_grammar_format(first)
+            if known is not None:
+                return known
             for marker, grammar_format in _OPENROUTER_PROVIDER_GRAMMAR_FORMAT_HINTS.items():
                 if first == marker or marker in first:
                     return grammar_format

@@ -1,0 +1,1084 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-02-14T05:12:36.841661+00:00",
+  "api_base": "https://openrouter.ai/api/v1",
+  "models": [
+    "qwen/qwen3-coder-30b-a3b-instruct",
+    "qwen/qwen3-coder",
+    "qwen/qwen3-14b"
+  ],
+  "formats": [
+    "ll-lark",
+    "gbnf"
+  ],
+  "results": [
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Novita",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 502,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Novita",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 502,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "SiliconFlow",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder-30b-a3b-instruct."
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "SiliconFlow",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder-30b-a3b-instruct."
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Nebius",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Nebius",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Amazon Bedrock",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder-30b-a3b-instruct."
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Amazon Bedrock",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder-30b-a3b-instruct."
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Alibaba",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 200,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'."
+    },
+    {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "provider": "Alibaba",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 200,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'response_format.type' Invalid value: 'grammar'. Supported values are: 'json_object' and 'text'."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "DeepInfra",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "DeepInfra",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Google",
+      "grammar_format": "ll-lark",
+      "outcome": "accepts+ignores",
+      "status_code": 200,
+      "generated_text": null,
+      "detail": "provider accepted request but returned empty/non-text output"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Google",
+      "grammar_format": "gbnf",
+      "outcome": "accepts+ignores",
+      "status_code": 200,
+      "generated_text": null,
+      "detail": "provider accepted request but returned empty/non-text output"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "SiliconFlow",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "SiliconFlow",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Novita",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 502,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Novita",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 502,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Nebius",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Nebius",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "AtlasCloud",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "AtlasCloud",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Alibaba",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Alibaba",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "WandB",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "WandB",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Hyperbolic",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Hyperbolic",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Together",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-coder",
+      "provider": "Together",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-coder."
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "Chutes",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-14b."
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "Chutes",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 404,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: No endpoints found for qwen/qwen3-14b."
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "NextBit",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 200,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: JSON error injected into SSE stream"
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "NextBit",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 200,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: JSON error injected into SSE stream"
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "DeepInfra",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "DeepInfra",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 422,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "Alibaba",
+      "grammar_format": "ll-lark",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    },
+    {
+      "model": "qwen/qwen3-14b",
+      "provider": "Alibaba",
+      "grammar_format": "gbnf",
+      "outcome": "reject",
+      "status_code": 400,
+      "generated_text": null,
+      "detail": "provider rejected grammar request: Provider returned error"
+    }
+  ],
+  "providers": {
+    "novita": {
+      "provider_name": "Novita",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 4
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        }
+      }
+    },
+    "siliconflow": {
+      "provider_name": "SiliconFlow",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 4
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        }
+      }
+    },
+    "nebius": {
+      "provider_name": "Nebius",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 4
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        }
+      }
+    },
+    "amazon bedrock": {
+      "provider_name": "Amazon Bedrock",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 2
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        }
+      }
+    },
+    "alibaba": {
+      "provider_name": "Alibaba",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 6
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 3
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 3
+        }
+      }
+    },
+    "deepinfra": {
+      "provider_name": "DeepInfra",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 4
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 2
+        }
+      }
+    },
+    "google": {
+      "provider_name": "Google",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 2,
+        "reject": 0
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 1,
+          "reject": 0
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 1,
+          "reject": 0
+        }
+      }
+    },
+    "atlascloud": {
+      "provider_name": "AtlasCloud",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 2
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        }
+      }
+    },
+    "wandb": {
+      "provider_name": "WandB",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 2
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        }
+      }
+    },
+    "hyperbolic": {
+      "provider_name": "Hyperbolic",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 2
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        }
+      }
+    },
+    "together": {
+      "provider_name": "Together",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 2
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        }
+      }
+    },
+    "chutes": {
+      "provider_name": "Chutes",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 2
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        }
+      }
+    },
+    "nextbit": {
+      "provider_name": "NextBit",
+      "supports_grammar": false,
+      "recommended_format": null,
+      "totals": {
+        "accepts+obeys": 0,
+        "accepts+ignores": 0,
+        "reject": 2
+      },
+      "format_outcomes": {
+        "ll-lark": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        },
+        "gbnf": {
+          "accepts+obeys": 0,
+          "accepts+ignores": 0,
+          "reject": 1
+        }
+      }
+    }
+  },
+  "models_summary": {
+    "qwen/qwen3-coder-30b-a3b-instruct": {
+      "model": "qwen/qwen3-coder-30b-a3b-instruct",
+      "supported_providers": [],
+      "providers": {
+        "novita": {
+          "provider_name": "Novita",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "siliconflow": {
+          "provider_name": "SiliconFlow",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "nebius": {
+          "provider_name": "Nebius",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "amazon bedrock": {
+          "provider_name": "Amazon Bedrock",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "alibaba": {
+          "provider_name": "Alibaba",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        }
+      }
+    },
+    "qwen/qwen3-coder": {
+      "model": "qwen/qwen3-coder",
+      "supported_providers": [],
+      "providers": {
+        "deepinfra": {
+          "provider_name": "DeepInfra",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "google": {
+          "provider_name": "Google",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 2,
+            "reject": 0
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 1,
+              "reject": 0
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 1,
+              "reject": 0
+            }
+          }
+        },
+        "siliconflow": {
+          "provider_name": "SiliconFlow",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "novita": {
+          "provider_name": "Novita",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "nebius": {
+          "provider_name": "Nebius",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "atlascloud": {
+          "provider_name": "AtlasCloud",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "alibaba": {
+          "provider_name": "Alibaba",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "wandb": {
+          "provider_name": "WandB",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "hyperbolic": {
+          "provider_name": "Hyperbolic",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "together": {
+          "provider_name": "Together",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        }
+      }
+    },
+    "qwen/qwen3-14b": {
+      "model": "qwen/qwen3-14b",
+      "supported_providers": [],
+      "providers": {
+        "chutes": {
+          "provider_name": "Chutes",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "nextbit": {
+          "provider_name": "NextBit",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "deepinfra": {
+          "provider_name": "DeepInfra",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        },
+        "alibaba": {
+          "provider_name": "Alibaba",
+          "supports_grammar": false,
+          "recommended_format": null,
+          "totals": {
+            "accepts+obeys": 0,
+            "accepts+ignores": 0,
+            "reject": 2
+          },
+          "format_outcomes": {
+            "ll-lark": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            },
+            "gbnf": {
+              "accepts+obeys": 0,
+              "accepts+ignores": 0,
+              "reject": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

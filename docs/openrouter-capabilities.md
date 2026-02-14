@@ -65,6 +65,12 @@ Related docs:
 - Serializer selection is provider-aware:
   - default: Guidance LL/Lark,
   - initial provider hint: `Fireworks -> GBNF`.
+- Provider grammar capability cache:
+  - shipped file: `guidance/resources/openrouter_provider_grammar_capabilities.json`
+  - generated/updated via discovery script:
+    - `scripts/openrouter_provider_grammar_discovery.py`
+  - when cache has model-supported providers, constrained OpenRouter grammar calls now prefer those providers.
+  - cache also contributes provider-specific format hints (`ll-lark` vs `gbnf`) when available.
 - This path is gated on OpenRouter metadata indicating `response_format` support for the current provider routing.
 - Output is validated locally against the original `guidance` grammar after generation:
   - provider rejection raises a grammar-specific error,
@@ -77,8 +83,23 @@ Probe harness for provider/format behavior:
 
 - `scripts/openrouter_grammar_probe.py`
 - writes matrix artifacts under `docs/openrouter-grammar-probe-matrix.*`
+- capability discovery + cache generation:
+  - `scripts/openrouter_provider_grammar_discovery.py`
+  - writes:
+    - `docs/openrouter-provider-grammar-capabilities.md`
+    - `guidance/resources/openrouter_provider_grammar_capabilities.json`
 - See full consolidated worklog:
   - `docs/openai-fireworks-openrouter-grammar-worklog.md`
+
+Refresh capability cache from `.env` model list:
+
+```bash
+dotenv python scripts/openrouter_provider_grammar_discovery.py \
+  --models "${OPENROUTER_FEATURE_TEST_MODELS}" \
+  --formats ll-lark,gbnf \
+  --output-json guidance/resources/openrouter_provider_grammar_capabilities.json \
+  --output-markdown docs/openrouter-provider-grammar-capabilities.md
+```
 
 ## Current Limits
 
