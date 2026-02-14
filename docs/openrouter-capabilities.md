@@ -58,6 +58,10 @@ Related docs:
 
 - `guidance` now attempts provider-side grammar-constrained decoding for OpenRouter grammar/regex nodes via:
   - `response_format={"type":"grammar","grammar": "<serialized_grammar>"}`.
+- Constrained grammar calls now default to stricter provider routing:
+  - `extra_body.provider.require_parameters=true`
+  - `extra_body.provider.allow_fallbacks=false`
+  - explicit user-provided routing settings are preserved.
 - Serializer selection is provider-aware:
   - default: Guidance LL/Lark,
   - initial provider hint: `Fireworks -> GBNF`.
@@ -66,6 +70,8 @@ Related docs:
   - provider rejection raises a grammar-specific error,
   - unconstrained/mismatched output raises validation error.
 - This is intentionally fail-closed, since provider support quality varies in practice.
+- Stream parsing supports a grammar-mode `reasoning_content` fallback for OpenRouter only when chunk provider is
+  Fireworks, based on live provider behavior variance.
 
 Probe harness for provider/format behavior:
 

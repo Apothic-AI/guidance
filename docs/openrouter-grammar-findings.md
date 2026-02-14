@@ -115,11 +115,23 @@ Current status:
 
 - Guidance now handles this field for direct Fireworks endpoints.
 - OpenRouter route-specific behavior still needs deeper payload-level validation.
+- Additional live probe (2026-02-14) forcing OpenRouter `Fireworks` provider for `z-ai/glm-5`
+  showed grammar-mode stream tokens in `delta.content` (with many empty chunks), not in
+  `delta.reasoning_content`.
 
 Follow-up:
 
 - inspect Fireworks SDK grammar-mode stream handling to confirm canonical semantics.
 - compare OpenRouter streamed payloads on Fireworks-backed routes to decide if equivalent parsing should be generalized.
+
+## Routing Tightening (2026-02-14)
+
+To improve constrained-generation reliability for OpenRouter grammar requests, Guidance now sets routing defaults:
+
+- `extra_body.provider.require_parameters = true`
+- `extra_body.provider.allow_fallbacks = false`
+
+These defaults are applied only for constrained grammar calls and preserve explicitly provided user settings.
 
 ## Remaining Work
 

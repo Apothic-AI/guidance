@@ -29,6 +29,12 @@ class OpenRouterGrammarMixin(BaseOpenAIInterpreter):
             return super().grammar(node, **kwargs)
 
         openrouter_kwargs = self._apply_openrouter_request_overrides(dict(kwargs))
+        openrouter_kwargs = self._openrouter_apply_constraint_routing_defaults(
+            openrouter_kwargs,
+            require_parameters=True,
+            allow_fallbacks=False,
+        )
+        openrouter_kwargs = self._apply_openrouter_request_overrides(openrouter_kwargs)
         if not self._openrouter_supports_grammar_response_format(openrouter_kwargs):
             raise ValueError(
                 f"OpenRouter model '{self.model}' does not support grammar response formats "
@@ -45,6 +51,7 @@ class OpenRouterGrammarMixin(BaseOpenAIInterpreter):
             raise ValueError(
                 f"OpenRouter provider grammar adapter '{grammar_format}' cannot represent this Guidance grammar."
             ) from exc
+        openrouter_kwargs.pop("response_format", None)
         generated_text = ""
         try:
             for attr in self._run(
@@ -52,7 +59,7 @@ class OpenRouterGrammarMixin(BaseOpenAIInterpreter):
                     "type": "grammar",
                     "grammar": grammar_definition,
                 },
-                **kwargs,
+                **openrouter_kwargs,
             ):
                 if isinstance(attr, (TextOutput, TokenOutput)):
                     generated_text += attr.value

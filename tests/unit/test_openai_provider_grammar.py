@@ -157,12 +157,82 @@ def test_fireworks_streams_reasoning_content_as_generated_text():
             _chunk(finish="stop"),
         ]
     )
-    outputs = list(interpreter._handle_stream(chunks, tools=None))
+    outputs = list(interpreter._handle_stream(chunks, tools=None, allow_reasoning_content_fallback=True))
     emitted = "".join(output.value for output in outputs if isinstance(output, TextOutput))
 
     assert emitted == "YES"
     assert interpreter.state.content
     assert interpreter.state.content[-1].text == "YES"
+
+
+def test_openrouter_fireworks_streams_reasoning_content_as_generated_text():
+    interpreter, _ = _interpreter("https://openrouter.ai/api/v1")
+
+    def _chunk(
+        *,
+        provider: str,
+        role: str | None = None,
+        reasoning_content: str | None = None,
+        finish: str | None = None,
+    ):
+        delta = SimpleNamespace(
+            content=None,
+            reasoning_content=reasoning_content,
+            role=role,
+            function_call=None,
+            tool_calls=None,
+            refusal=None,
+            audio=None,
+        )
+        choice = SimpleNamespace(delta=delta, finish_reason=finish, logprobs=None)
+        return SimpleNamespace(choices=[choice], usage=None, provider=provider)
+
+    chunks = iter(
+        [
+            _chunk(provider="Fireworks", role="assistant"),
+            _chunk(provider="Fireworks", reasoning_content="Y"),
+            _chunk(provider="Fireworks", reasoning_content="E"),
+            _chunk(provider="Fireworks", reasoning_content="S"),
+            _chunk(provider="Fireworks", finish="stop"),
+        ]
+    )
+    outputs = list(interpreter._handle_stream(chunks, tools=None, allow_reasoning_content_fallback=True))
+    emitted = "".join(output.value for output in outputs if isinstance(output, TextOutput))
+
+    assert emitted == "YES"
+    assert interpreter.state.content
+    assert interpreter.state.content[-1].text == "YES"
+
+
+def test_openrouter_non_fireworks_provider_ignores_reasoning_content_fallback():
+    interpreter, _ = _interpreter("https://openrouter.ai/api/v1")
+
+    def _chunk(*, provider: str, reasoning_content: str | None = None, finish: str | None = None):
+        delta = SimpleNamespace(
+            content=None,
+            reasoning_content=reasoning_content,
+            role=None,
+            function_call=None,
+            tool_calls=None,
+            refusal=None,
+            audio=None,
+        )
+        choice = SimpleNamespace(delta=delta, finish_reason=finish, logprobs=None)
+        return SimpleNamespace(choices=[choice], usage=None, provider=provider)
+
+    chunks = iter(
+        [
+            _chunk(provider="Together", reasoning_content="Y"),
+            _chunk(provider="Together", reasoning_content="E"),
+            _chunk(provider="Together", reasoning_content="S"),
+            _chunk(provider="Together", finish="stop"),
+        ]
+    )
+    outputs = list(interpreter._handle_stream(chunks, tools=None, allow_reasoning_content_fallback=True))
+    emitted = "".join(output.value for output in outputs if isinstance(output, TextOutput))
+
+    assert emitted == ""
+    assert interpreter.state.content == []
 
 
 def test_non_openai_endpoints_keep_existing_regex_behavior():

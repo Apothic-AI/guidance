@@ -65,6 +65,28 @@ def test_openrouter_grammar_sends_response_format(monkeypatch):
     assert outputs[0].value == "YES"
     assert seen["response_format"]["type"] == "grammar"
     assert "YES|NO" in seen["response_format"]["grammar"]
+    assert seen["extra_body"]["provider"]["require_parameters"] is True
+    assert seen["extra_body"]["provider"]["allow_fallbacks"] is False
+
+
+def test_openrouter_grammar_respects_explicit_provider_routing(monkeypatch):
+    interpreter = _interpreter()
+    monkeypatch.setattr(interpreter, "_openrouter_supports_grammar_response_format", lambda request_kwargs: True)
+    seen: dict[str, Any] = {}
+
+    def fake_run(**kwargs):  # noqa: ANN001
+        seen.update(kwargs)
+        yield TextOutput(value="YES", is_generated=True)
+
+    monkeypatch.setattr(interpreter, "_run", fake_run)
+    _ = list(
+        interpreter.regex(
+            RegexNode("YES|NO"),
+            extra_body={"provider": {"require_parameters": False, "allow_fallbacks": True}},
+        )
+    )
+    assert seen["extra_body"]["provider"]["require_parameters"] is False
+    assert seen["extra_body"]["provider"]["allow_fallbacks"] is True
 
 
 def test_openrouter_grammar_support_gate(monkeypatch):

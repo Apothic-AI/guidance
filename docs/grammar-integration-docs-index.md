@@ -28,6 +28,10 @@ This index organizes the current Markdown documentation for grammar/constrained-
 2. `docs/openrouter-grammar-probe-matrix.json`
    - Machine-readable probe results.
 
+3. `docs/fireworks-sdk-grammar-investigation.md`
+   - Fireworks SDK + live stream behavior findings for grammar mode.
+   - Documents `reasoning_content` nuance and OpenRouter applicability.
+
 ## Plan / Historical Docs
 
 1. `docs/openai-fireworks-native-grammar-implementation-plan.md`

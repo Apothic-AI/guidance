@@ -332,6 +332,13 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
         self.state.apply_text(node.value)
         yield TextOutput(value=node.value, is_input=True)
 
+    @staticmethod
+    def _request_uses_grammar_response_format(request_kwargs: dict[str, Any]) -> bool:
+        response_format = request_kwargs.get("response_format")
+        if not isinstance(response_format, dict):
+            return False
+        return str(response_format.get("type", "")).strip().lower() == "grammar"
+
     def _run(self, tools: dict[str, Tool] | None = None, **kwargs) -> Iterator[OutputAttr]:
         if self.state.active_role is None:
             # Should never happen?
@@ -380,6 +387,8 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
             )
             request_logprobs = mode != "disabled"
 
+        allow_reasoning_content_fallback = self._request_uses_grammar_response_format(request_kwargs)
+
         with self.client.streaming_chat_completions(
             model=self.model,
             messages=cast(list[dict[str, Any]], TypeAdapter(list[Message]).dump_python(self.state.messages)),
@@ -388,12 +397,18 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
             tools=[tool.with_name(name).to_openai_style() for name, tool in tools.items()] if tools else None,
             **request_kwargs,
         ) as chunks:
-            yield from self._handle_stream(chunks, tools)
+            yield from self._handle_stream(
+                chunks,
+                tools,
+                allow_reasoning_content_fallback=allow_reasoning_content_fallback,
+            )
 
     def _handle_stream(
         self,
         chunks: Iterator["ChatCompletionChunk"],
         tools: dict[str, Tool] | None,
+        *,
+        allow_reasoning_content_fallback: bool = False,
     ) -> Iterator[OutputAttr]:
         _t0 = time.time()
         t0 = _t0
@@ -402,6 +417,7 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
         # We made another call to the OpenAI API, so we count it as a round trip.
         usage = TokenUsage(round_trips=1)
         is_fireworks_client = "fireworks.ai" in self._client_base_url()
+        is_openrouter_client = self._is_openrouter_client()
         for chunk in chunks:
             t1 = time.time()
             latency_ms = (t1 - t0) * 1000
@@ -422,9 +438,14 @@ class BaseOpenAIInterpreter(OpenRouterCapabilityMixin, Interpreter[OpenAIState])
                 continue
             choice = chunk.choices[0]
             delta = choice.delta
+            provider_name = str(getattr(chunk, "provider", "")).strip().lower()
+            is_fireworks_provider_chunk = "fireworks" in provider_name if provider_name else False
+            use_reasoning_content_fallback = allow_reasoning_content_fallback and (
+                is_fireworks_client or (is_openrouter_client and is_fireworks_provider_chunk)
+            )
             generated_chunk = delta.content
-            if generated_chunk is None and is_fireworks_client:
-                # Fireworks may stream generated text in `reasoning_content` for some models/routes.
+            if (generated_chunk is None or generated_chunk == "") and use_reasoning_content_fallback:
+                # Grammar-mode routes can stream final constrained text in `reasoning_content`.
                 reasoning_chunk = getattr(delta, "reasoning_content", None)
                 if isinstance(reasoning_chunk, str):
                     generated_chunk = reasoning_chunk

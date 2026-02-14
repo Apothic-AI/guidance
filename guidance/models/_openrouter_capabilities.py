@@ -261,6 +261,26 @@ class OpenRouterCapabilityMixin:
         require_parameters = bool(provider.get("require_parameters", False))
         return order, require_parameters
 
+    def _openrouter_apply_constraint_routing_defaults(
+        self,
+        request_kwargs: dict[str, Any],
+        *,
+        require_parameters: bool = True,
+        allow_fallbacks: bool = False,
+    ) -> dict[str, Any]:
+        """Bias constrained requests toward capability-compatible providers."""
+        normalized = dict(request_kwargs)
+        raw_extra = normalized.get("extra_body")
+        extra_body = dict(raw_extra) if isinstance(raw_extra, dict) else {}
+
+        provider = extra_body.get("provider")
+        provider_obj = dict(provider) if isinstance(provider, dict) else {}
+        provider_obj.setdefault("require_parameters", bool(require_parameters))
+        provider_obj.setdefault("allow_fallbacks", bool(allow_fallbacks))
+        extra_body["provider"] = provider_obj
+        normalized["extra_body"] = extra_body
+        return normalized
+
     def _openrouter_candidate_endpoints(
         self,
         *,

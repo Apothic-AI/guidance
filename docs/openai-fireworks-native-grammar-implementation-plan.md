@@ -37,8 +37,10 @@ Implemented in this branch:
 - Fireworks grammar path is implemented for OpenAI-compatible clients targeting Fireworks:
   - `response_format={"type":"grammar","grammar":"<gbnf>"}`.
   - grammar string is produced by a new conservative GBNF adapter.
-  - stream handling includes a Fireworks-specific fallback for grammar mode where tokens may arrive in
-    `delta.reasoning_content` instead of `delta.content`.
+  - stream handling includes grammar-mode fallback where tokens may arrive in
+    `delta.reasoning_content` instead of `delta.content`:
+    - direct Fireworks clients,
+    - OpenRouter streams when routed provider is Fireworks.
 - Shared fail-closed validation is implemented:
   - standardized constraint errors,
   - local `node.match(...)` validation for all native paths,
@@ -52,6 +54,9 @@ Implemented in this branch:
   - provider hint `Fireworks -> gbnf`,
   - default remains `ll-lark`,
   - fail-closed local validation remains mandatory.
+  - constrained grammar calls now default to strict provider routing:
+    - `require_parameters=true`,
+    - `allow_fallbacks=false` (unless explicitly set by caller).
 
 Implemented tests:
 

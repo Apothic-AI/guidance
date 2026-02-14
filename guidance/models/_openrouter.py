@@ -214,6 +214,7 @@ class OpenRouterInterpreter(OpenRouterRuleMixin, OpenRouterGrammarMixin, OpenAIJ
             top_logprobs=top_logprobs,
         )
         request_logprobs = mode != "disabled"
+        allow_reasoning_content_fallback = self._request_uses_grammar_response_format(request_kwargs)
 
         with self.client.streaming_chat_completions(
             model=self.model,
@@ -223,7 +224,11 @@ class OpenRouterInterpreter(OpenRouterRuleMixin, OpenRouterGrammarMixin, OpenAIJ
             tools=[tool.with_name(name).to_openai_style() for name, tool in tools.items()] if tools else None,
             **request_kwargs,
         ) as chunks:
-            yield from self._handle_stream(chunks, tools)
+            yield from self._handle_stream(
+                chunks,
+                tools,
+                allow_reasoning_content_fallback=allow_reasoning_content_fallback,
+            )
 
 
 class OpenRouter(Model):

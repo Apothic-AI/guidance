@@ -122,8 +122,35 @@ Important note:
   - GBNF grammar
   - minimal Lark grammar
 - Emits matrix artifacts:
-  - `docs/openrouter-grammar-probe-matrix.md`
-  - `docs/openrouter-grammar-probe-matrix.json`
+- `docs/openrouter-grammar-probe-matrix.md`
+- `docs/openrouter-grammar-probe-matrix.json`
+
+### 8. Fireworks SDK investigation + parser/routing tightening (2026-02-14)
+
+SDK inspection findings:
+
+- Fireworks SDK exposes grammar mode as `response_format={"type":"grammar","grammar":"..."}`.
+- Fireworks chat message/chunk schema includes both `content` and `reasoning_content`.
+
+Live probes:
+
+- Direct Fireworks grammar streaming (tested model) emitted constrained tokens in `delta.reasoning_content`.
+- Direct Fireworks non-stream returned constrained output in `message.content`.
+- OpenRouter routed to Fireworks (strict provider settings) emitted constrained stream output in `delta.content`.
+
+Code tightening implemented from those findings:
+
+- Stream parser now supports grammar-mode fallback from `content` to `reasoning_content`:
+  - direct Fireworks clients,
+  - OpenRouter streams only when chunk provider is Fireworks.
+- OpenRouter grammar path now defaults to strict provider routing:
+  - `require_parameters=true`,
+  - `allow_fallbacks=false`,
+  - while preserving explicit user overrides.
+
+Related doc:
+
+- `docs/fireworks-sdk-grammar-investigation.md`
 
 ## Live Testing Outcomes (So Far)
 
