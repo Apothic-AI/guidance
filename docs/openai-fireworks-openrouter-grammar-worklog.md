@@ -178,6 +178,26 @@ Runtime integration:
 - cache-informed provider preference for constrained grammar calls (when no explicit provider route is set),
 - cache-informed provider grammar format selection (`ll-lark` vs `gbnf`) when available.
 
+### 10. Parallel Provider Docs Research + Synthesis (2026-02-14)
+
+Executed parallel `codex exec --dangerously-bypass-approvals-and-sandbox` research jobs, one per provider,
+to gather official provider-doc grammar/structured-output capabilities.
+
+Artifacts:
+
+- per-provider research notes:
+  - `docs/provider-grammar-research/*.md`
+- run summary:
+  - `docs/provider-grammar-research/_summary.json`
+- normalized synthesis:
+  - `docs/provider-grammar-research-matrix.md`
+  - `docs/provider-grammar-research-matrix.json`
+
+Scope note:
+
+- This matrix summarizes provider-native documented capabilities.
+- It is complementary to live OpenRouter route probes/caches, not a replacement for runtime fail-closed validation.
+
 Follow-up correction:
 
 - A raw payload validation pass showed some providers return HTTP 200 with an in-body `error` object.

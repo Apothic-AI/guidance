@@ -41,6 +41,12 @@ This index organizes the current Markdown documentation for grammar/constrained-
 5. `docs/openrouter-provider-grammar-raw-outputs.json`
    - Raw non-stream and stream payload captures used to validate provider classification.
 
+6. `docs/provider-grammar-research-matrix.md`
+   - Consolidated provider-docs compatibility matrix (support level, dialect, request shape, streaming fields).
+
+7. `docs/provider-grammar-research-matrix.json`
+   - Machine-readable version of the provider-docs matrix.
+
 ## Plan / Historical Docs
 
 1. `docs/openai-fireworks-native-grammar-implementation-plan.md`

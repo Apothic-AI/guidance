@@ -1,0 +1,166 @@
+{
+  "providers": [
+    "Alibaba",
+    "Amazon Bedrock",
+    "AtlasCloud",
+    "Chutes",
+    "DeepInfra",
+    "Fireworks",
+    "Friendli",
+    "GMICloud",
+    "Google",
+    "Hyperbolic",
+    "Nebius",
+    "NextBit",
+    "Novita",
+    "Parasail",
+    "Phala",
+    "SiliconFlow",
+    "Together",
+    "Venice",
+    "WandB",
+    "Z.AI"
+  ],
+  "results": [
+    {
+      "provider": "Alibaba",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/alibaba.md",
+      "stdout_chars": 2243,
+      "stderr_chars": 7277
+    },
+    {
+      "provider": "Amazon Bedrock",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/amazon-bedrock.md",
+      "stdout_chars": 3541,
+      "stderr_chars": 8995
+    },
+    {
+      "provider": "AtlasCloud",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/atlascloud.md",
+      "stdout_chars": 1561,
+      "stderr_chars": 8012
+    },
+    {
+      "provider": "Chutes",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/chutes.md",
+      "stdout_chars": 2051,
+      "stderr_chars": 7533
+    },
+    {
+      "provider": "DeepInfra",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/deepinfra.md",
+      "stdout_chars": 1497,
+      "stderr_chars": 57819
+    },
+    {
+      "provider": "Fireworks",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/fireworks.md",
+      "stdout_chars": 1829,
+      "stderr_chars": 6722
+    },
+    {
+      "provider": "Friendli",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/friendli.md",
+      "stdout_chars": 2569,
+      "stderr_chars": 8326
+    },
+    {
+      "provider": "GMICloud",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/gmicloud.md",
+      "stdout_chars": 1362,
+      "stderr_chars": 6736
+    },
+    {
+      "provider": "Google",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/google.md",
+      "stdout_chars": 2104,
+      "stderr_chars": 7705
+    },
+    {
+      "provider": "Hyperbolic",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/hyperbolic.md",
+      "stdout_chars": 1916,
+      "stderr_chars": 7315
+    },
+    {
+      "provider": "Nebius",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/nebius.md",
+      "stdout_chars": 2245,
+      "stderr_chars": 9500
+    },
+    {
+      "provider": "NextBit",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/nextbit.md",
+      "stdout_chars": 2282,
+      "stderr_chars": 9140
+    },
+    {
+      "provider": "Novita",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/novita.md",
+      "stdout_chars": 2038,
+      "stderr_chars": 7174
+    },
+    {
+      "provider": "Parasail",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/parasail.md",
+      "stdout_chars": 2514,
+      "stderr_chars": 8453
+    },
+    {
+      "provider": "Phala",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/phala.md",
+      "stdout_chars": 1854,
+      "stderr_chars": 8641
+    },
+    {
+      "provider": "SiliconFlow",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/siliconflow.md",
+      "stdout_chars": 2280,
+      "stderr_chars": 328847
+    },
+    {
+      "provider": "Together",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/together.md",
+      "stdout_chars": 2048,
+      "stderr_chars": 7966
+    },
+    {
+      "provider": "Venice",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/venice.md",
+      "stdout_chars": 2020,
+      "stderr_chars": 18007
+    },
+    {
+      "provider": "WandB",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/wandb.md",
+      "stdout_chars": 2067,
+      "stderr_chars": 7694
+    },
+    {
+      "provider": "Z.AI",
+      "rc": 0,
+      "file": "docs/provider-grammar-research/z-ai.md",
+      "stdout_chars": 1654,
+      "stderr_chars": 6660
+    }
+  ]
+}
